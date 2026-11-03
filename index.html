@@ -989,15 +989,16 @@
         }
 
         function updateCandlesDisplay() {
-            const c1 = true;
+            // Ljus 1 tänds när lucka 1 är avklarad
+            const c1 = userProgress[1] && userProgress[1].task1 && userProgress[1].task2;
             const c2 = userProgress[6] && userProgress[6].task1 && userProgress[6].task2;
             const c3 = userProgress[13] && userProgress[13].task1 && userProgress[13].task2;
             const c4 = userProgress[20] && userProgress[20].task1 && userProgress[20].task2;
             
-            if (c1) setCandleLit(1, false);
-            if (c2) setCandleLit(2, false);
-            if (c3) setCandleLit(3, false);
-            if (c4) setCandleLit(4, false);
+            if (c1) setCandleLit(1, false); else setCandleUnlit(1);
+            if (c2) setCandleLit(2, false); else setCandleUnlit(2);
+            if (c3) setCandleLit(3, false); else setCandleUnlit(3);
+            if (c4) setCandleLit(4, false); else setCandleUnlit(4);
         }
 
         function setCandleLit(candleNum, withEffects = true) {
@@ -1011,6 +1012,13 @@
                         createMagicBurst(rect.left + rect.width / 2, rect.top - 10);
                     }
                 }
+            }
+        }
+
+        function setCandleUnlit(candleNum) {
+            const wrapper = document.getElementById(`flame-wrapper-${candleNum}`);
+            if (wrapper && wrapper.classList.contains('active')) {
+                wrapper.classList.remove('active');
             }
         }
 
@@ -1939,6 +1947,12 @@
                 if (!userProgress[activeDoorNumber].starLit) {
                     pendingStarToLight = activeDoorNumber;
                 }
+
+                // Tänd första adventsljuset om detta är Lucka 1
+                if (activeDoorNumber === 1) {
+                    pendingCandleToLight = 1;
+                }
+
                 renderDoors();
             } else if (isU1Correct || isU2Correct) {
                 feedbackEl.className = "text-[11px] text-center font-bold text-amber-300";
@@ -1990,27 +2004,6 @@
             }, 300);
         }
 
-        function openKeyPromptModal() {
-            document.getElementById('key-code-input').value = '';
-            document.getElementById('key-error-msg').classList.add('hidden');
-            document.getElementById('key-modal').classList.remove('hidden');
-        }
-
-        function closeKeyModal() {
-            document.getElementById('key-modal').classList.add('hidden');
-        }
-
-        function handleCodeSubmit(e) {
-            e.preventDefault();
-            const inputCode = document.getElementById('key-code-input').value.trim().toLowerCase();
-            if (inputCode === 'julaftonsmorgon') {
-                closeKeyModal();
-                openAdminModal();
-            } else {
-                document.getElementById('key-error-msg').classList.remove('hidden');
-            }
-        }
-
         function openAdminModal() {
             document.getElementById('unlock-all-toggle').checked = unlockAllMode;
             document.getElementById('auto-light-stars-toggle').checked = autoLightStarsMode;
@@ -2038,6 +2031,7 @@
             simulatedDay = (val === 'real') ? null : parseInt(val, 10);
             saveAdminSettings();
             renderDoors();
+            updateCandlesDisplay();
         }
 
         function resetToRealDate() {
@@ -2049,8 +2043,37 @@
             document.getElementById('auto-light-stars-toggle').checked = false;
             document.getElementById('simulated-day-select').value = 'real';
             renderDoors();
+            updateCandlesDisplay();
             closeAdminModal();
             showToast("Kalendern har återställts till riktigt datum!");
+        }
+
+        // Hantering av nyckel-modalen (Key Modal) för Admin & Simulering
+        function openKeyPromptModal() {
+            const input = document.getElementById('key-code-input');
+            const errorMsg = document.getElementById('key-error-msg');
+            if (input) input.value = '';
+            if (errorMsg) errorMsg.classList.add('hidden');
+            const modal = document.getElementById('key-modal');
+            if (modal) modal.classList.remove('hidden');
+        }
+
+        function closeKeyModal() {
+            const modal = document.getElementById('key-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        function handleCodeSubmit(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('key-code-input').value.trim().toLowerCase();
+            // Hemlig kod för admin/simuleringsläge: endast "julaftonsmorgon"
+            if (inputVal === 'julaftonsmorgon') {
+                closeKeyModal();
+                openAdminModal();
+            } else {
+                const errorMsg = document.getElementById('key-error-msg');
+                if (errorMsg) errorMsg.classList.remove('hidden');
+            }
         }
 
         window.onload = function() {
