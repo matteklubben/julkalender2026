@@ -35,7 +35,7 @@
             width: 100vw;
             height: 100vh;
             pointer-events: none;
-            z-index: 5; /* Justerat z-index för perfekt synlighet utan att krocka */
+            z-index: 5;
         }
         .bg-star {
             position: absolute;
@@ -44,6 +44,7 @@
             transition: all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
             filter: drop-shadow(0 0 2px rgba(255, 215, 0, 0.2));
             z-index: 5;
+            user-select: none;
         }
         .bg-star.lit {
             color: #ffd700;
@@ -52,6 +53,20 @@
             filter: drop-shadow(0 0 14px #ffd700) drop-shadow(0 0 28px #ff9900);
             animation: pulseStar 2s infinite alternate ease-in-out;
             z-index: 6;
+        }
+        .bg-star.blue-star {
+            color: #60a5fa !important;
+            opacity: 0.9 !important;
+            filter: drop-shadow(0 0 10px #3b82f6) drop-shadow(0 0 20px #1d4ed8) !important;
+        }
+        .bg-star.clickable-star {
+            pointer-events: auto !important;
+            cursor: pointer !important;
+            transition: transform 0.3s ease, filter 0.3s ease;
+        }
+        .bg-star.clickable-star:hover {
+            transform: scale(1.6) !important;
+            filter: drop-shadow(0 0 18px #ffffff) drop-shadow(0 0 30px #ffd700) !important;
         }
         @keyframes pulseStar {
             0% { transform: scale(1); filter: drop-shadow(0 0 10px #ffd700); }
@@ -255,8 +270,7 @@
             color: #86efac;
             box-shadow: inset 0 0 10px rgba(134, 239, 172, 0.4);
         }
-        /* --- ANIMATIONER FÖR FÖRHINDRADE LUCKOR --- */
-        /* 1. Skaka & Försvinn */
+        /* ANIMATIONER FÖR FÖRHINDRADE LUCKOR */
         .anim-shake-fade {
             animation: shakeFade 1.2s forwards cubic-bezier(0.36, 0.07, 0.19, 0.97) !important;
             border-color: #ef4444 !important;
@@ -268,7 +282,6 @@
             85% { transform: translate(0, 0) scale(1); opacity: 1; }
             100% { transform: translate(0, 0) scale(0.3); opacity: 0; }
         }
-        /* 2. Snurra, minska & försvinn */
         .anim-spin-shrink {
             animation: spinShrink 1.2s forwards ease-in-out !important;
             border-color: #ef4444 !important;
@@ -278,7 +291,6 @@
             50% { transform: rotate(180deg) scale(0.6); opacity: 0.8; }
             100% { transform: rotate(360deg) scale(0); opacity: 0; }
         }
-        /* 3. Dra ihop uppifrån och ner & försvinn */
         .anim-vertical-collapse {
             animation: verticalCollapse 1.2s forwards ease-in-out !important;
             border-color: #ef4444 !important;
@@ -311,7 +323,6 @@
         #toast-message {
             transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
-        /* Nedfällning / Dölja Huvudinnehåll för stjärnhimmelsläge */
         .content-sliding-wrapper {
             transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.6s ease;
         }
@@ -320,10 +331,36 @@
             opacity: 0;
             pointer-events: none;
         }
+
+        /* MINISPEL MED STJÄRNRAM STILER */
+        .minigame-star-inactive {
+            color: rgba(255, 255, 255, 0.2);
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+            transition: all 0.3s ease;
+        }
+        .minigame-star-active {
+            color: #ffd700;
+            filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffaa00);
+            animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes starPop {
+            0% { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+            50% { transform: scale(1.5) rotate(15deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+        .shake-card {
+            animation: cardShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+        @keyframes cardShake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+            40%, 60% { transform: translate3d(7px, 0, 0); }
+        }
     </style>
 </head>
 <body class="p-3 md:p-6 flex flex-col justify-between min-h-screen relative">
-    <!-- 24 Bakgrundsstjärnor & Konstellations-SVG -->
+    <!-- 24+1 Bakgrundsstjärnor & Konstellations-SVG -->
     <div id="stars-bg-container"></div>
     <svg id="constellations-svg"></svg>
     <!-- Snöfall-container -->
@@ -340,7 +377,6 @@
             <span>Klassisk Magisk Julkalender</span>
             <span id="active-date-badge" class="hidden px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full normal-case font-sans"></span>
         </p>
-        <!-- Knapp för att växla till Stjärnhimmelsläge -->
         <div class="mt-3">
             <button id="toggle-sky-btn" onclick="toggleStarSkyView()" 
                     class="px-4 py-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-lg border border-amber-300/40 transition-all transform hover:scale-105 flex items-center justify-center gap-2 mx-auto">
@@ -352,12 +388,10 @@
 
     <!-- Huvudcontainer med slide-effekt för att fälla ner kalendern -->
     <div id="main-content-wrapper" class="content-sliding-wrapper flex-grow flex flex-col justify-between relative z-20">
-        <!-- Main Layout: Small Left Column + Dominant Right Calendar Picture -->
         <main class="max-w-[1500px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start relative z-20 mb-4">
             
             <!-- VÄNSTER KOLUMN -->
             <section class="lg:col-span-3 flex flex-col gap-5">
-                
                 <!-- Adventsljusstake -->
                 <div id="candlestick-card" class="glass-panel p-4 sm:p-5 rounded-2xl text-center relative overflow-hidden">
                     <h2 class="font-header text-base text-amber-300 mb-4 flex items-center justify-center gap-2">
@@ -367,17 +401,17 @@
                     </h2>
                     <div id="candlestick-container" class="candlestick-wrapper relative w-full max-w-[220px] mx-auto h-36 flex items-end justify-center pb-3">
                         
-                        <!-- Ljus 1 -->
+                        <!-- Ljus 1 (Tänds 29 nov) -->
                         <div class="flex flex-col items-center absolute bottom-5 left-[10%]">
                             <div id="candle-1" class="candle w-4 h-14">
                                 <div class="candle-wick"></div>
-                                <div id="flame-wrapper-1" class="flame-wrapper">
+                                <div id="flame-wrapper-1" class="flame-wrapper active">
                                     <div class="magic-aura"></div>
                                     <div class="flame"></div>
                                 </div>
                             </div>
                         </div>
-                        <!-- Ljus 2 -->
+                        <!-- Ljus 2 (Tänds 6 dec) -->
                         <div class="flex flex-col items-center absolute bottom-5 left-[32%]">
                             <div id="candle-2" class="candle w-4 h-20">
                                 <div class="candle-wick"></div>
@@ -387,7 +421,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Ljus 3 -->
+                        <!-- Ljus 3 (Tänds 13 dec) -->
                         <div class="flex flex-col items-center absolute bottom-5 right-[32%]">
                             <div id="candle-3" class="candle w-4 h-24">
                                 <div class="candle-wick"></div>
@@ -397,7 +431,7 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Ljus 4 -->
+                        <!-- Ljus 4 (Tänds 20 dec) -->
                         <div class="flex flex-col items-center absolute bottom-5 right-[10%]">
                             <div id="candle-4" class="candle w-4 h-28">
                                 <div class="candle-wick"></div>
@@ -412,6 +446,7 @@
                         </div>
                     </div>
                 </div>
+
                 <!-- Nedräkning till julafton -->
                 <div class="glass-panel p-4 sm:p-5 rounded-2xl text-center">
                     <h2 class="font-header text-sm text-amber-200 mb-3 flex items-center justify-center gap-2">
@@ -438,24 +473,23 @@
                     </div>
                 </div>
             </section>
+
             <!-- HÖGER KOLUMN: Stor kalendertavla -->
             <section class="lg:col-span-9">
                 <div class="picture-frame rounded-xl overflow-hidden shadow-2xl relative">
                     <div class="relative w-full aspect-[16/10] bg-slate-900 overflow-hidden select-none">
-                        <!-- Bild från Unsplash -->
                         <img src="https://images.unsplash.com/photo-1543589077-47d513165c1a?auto=format&fit=crop&w=1600&q=80" 
                              alt="Julkalender Bakgrund" 
                              class="w-full h-full object-cover filter brightness-[0.9] contrast-[1.05]"
                              onerror="this.src='https://images.unsplash.com/photo-1543589077-47d81606c1bf?auto=format&fit=crop&w=1600&q=80'">
-                        
                         <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-black/30 pointer-events-none"></div>
-                        <!-- CONTAINER FÖR DE 24 LUCKORNA -->
                         <div id="doors-container" class="absolute inset-0 w-full h-full"></div>
                     </div>
                 </div>
             </section>
         </main>
-        <!-- Footer med nyckel-symbol i vänstra hörnet -->
+
+        <!-- Footer -->
         <footer class="flex items-center justify-between text-xs text-amber-200/50 py-2 relative z-30 px-2">
             <button onclick="openKeyPromptModal()" title="Admin & Simuleringsläge" 
                     class="w-10 h-10 rounded-full bg-slate-900/80 border border-amber-500/40 text-amber-400 hover:text-amber-200 hover:border-amber-400 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
@@ -468,16 +502,17 @@
             </button>
         </footer>
     </div>
+
     <!-- Toast Meddelande -->
     <div id="toast-message" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 pointer-events-none max-w-sm glass-panel bg-slate-950/95 border-amber-500/50 p-4 rounded-xl shadow-2xl flex items-center gap-3">
         <span class="text-2xl">🎅</span>
         <p id="toast-text" class="text-xs text-amber-100 leading-snug">Detta meddelande visar sig vid låsta luckor.</p>
     </div>
+
     <!-- Modal för lucka & matematik-uppgifter -->
     <div id="door-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
         <div class="glass-panel bg-slate-950/95 border border-amber-500/40 rounded-2xl max-w-xl w-full p-5 sm:p-7 relative shadow-2xl transform transition-all scale-95 opacity-0 duration-300 max-h-[90vh] overflow-y-auto" id="modal-card">
-            
-            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-amber-400 text-xl transition-colors w-9 h-9 flex items-center justify-center rounded-full bg-black/50 border border-white/10">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-amber-400 text-xl transition-colors w-9 h-9 flex items-center justify-center rounded-full bg-black/50 border border-white/10 z-30">
                 <i class="fa-solid fa-xmark"></i>
             </button>
             <div class="flex items-center gap-3 mb-4 border-b border-amber-500/20 pb-3">
@@ -489,7 +524,71 @@
                     <p id="modal-subtitle" class="text-[11px] text-amber-100/60">Dagens Julutmaning & Hälsning</p>
                 </div>
             </div>
-            <!-- UPPGIFTS-SEKTION FÖR MÅNDAG - TORSDAG -->
+
+            <!-- MINISPEL-SEKTION FÖR ADVENTSSÖNDAGAR (6, 13, 20 DEC) -->
+            <div id="minigame-container" class="space-y-4 mb-5 hidden">
+                <div id="minigame-wrapper" class="relative bg-black/60 border border-amber-500/40 rounded-2xl p-6 text-center select-none overflow-visible">
+                    
+                    <!-- STJÄRNRAM (Exakt 20 stjärnor i ram runt spelet) -->
+                    <div id="top-stars" class="absolute -top-3.5 left-2 right-2 flex justify-evenly items-center z-20 pointer-events-none"></div>
+                    <div id="left-stars" class="absolute -left-3.5 top-6 bottom-6 flex flex-col justify-evenly items-center z-20 pointer-events-none"></div>
+                    <div id="right-stars" class="absolute -right-3.5 top-6 bottom-6 flex flex-col justify-evenly items-center z-20 pointer-events-none"></div>
+                    <div id="bottom-stars" class="absolute -bottom-3.5 left-2 right-2 flex justify-evenly items-center z-20 pointer-events-none"></div>
+
+                    <!-- SPELINNEHÅLL -->
+                    <div id="minigame-play-area" class="space-y-4 py-2">
+                        <div>
+                            <h4 id="minigame-title" class="text-sm sm:text-base font-header font-bold text-amber-300 flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-gamepad text-amber-400"></i>
+                                Multiplikationstabellen
+                            </h4>
+                            <p id="minigame-desc" class="text-[11px] text-amber-100/70 mt-1">
+                                Klara 20 rätta svar för att tända alla stjärnor och adventsljuset! ⭐
+                            </p>
+                        </div>
+
+                        <!-- Framstegsmätare -->
+                        <div class="w-full bg-slate-900 border border-amber-500/20 h-2.5 rounded-full overflow-hidden shadow-inner">
+                            <div id="minigame-progress-bar" class="bg-gradient-to-r from-amber-500 to-yellow-400 h-full w-0 transition-all duration-300 rounded-full"></div>
+                        </div>
+
+                        <!-- Kort med frågan -->
+                        <div id="minigame-question-card" class="bg-gradient-to-br from-amber-950/80 via-slate-900 to-amber-900/60 border border-amber-500/40 rounded-xl p-4 shadow-lg transform transition-transform duration-200 my-3">
+                            <span class="text-[10px] uppercase font-header tracking-widest text-amber-300/80 font-bold">Räkna ut:</span>
+                            <div id="minigame-problem-text" class="text-3xl sm:text-4xl font-extrabold font-header text-amber-200 my-1 tracking-wider drop-shadow-md">
+                                7 × 8 = ?
+                            </div>
+                        </div>
+
+                        <!-- Svarsformulär -->
+                        <form id="minigame-form" onsubmit="handleMinigameSubmit(event)" class="flex flex-col sm:flex-row gap-2.5 justify-center items-center max-w-sm mx-auto">
+                            <input type="number" id="minigame-input" placeholder="Svar?" autocomplete="off" required
+                                   class="w-full sm:w-1/2 text-center text-xl font-bold p-2.5 bg-slate-900 border border-amber-500/40 focus:border-amber-400 rounded-xl text-amber-100 shadow-inner focus:outline-none">
+                            <button type="submit" 
+                                    class="w-full sm:w-auto px-6 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-2 cursor-pointer">
+                                <span>Svara</span>
+                                <i class="fa-solid fa-arrow-right"></i>
+                            </button>
+                        </form>
+
+                        <!-- Feedback-meddelande -->
+                        <div id="minigame-feedback" class="h-6 text-xs font-bold flex items-center justify-center transition-all opacity-0">
+                            <span id="minigame-feedback-text"></span>
+                        </div>
+                    </div>
+
+                    <!-- VINSTSKÄRM -->
+                    <div id="minigame-win-screen" class="hidden py-4 space-y-3">
+                        <div class="text-4xl animate-bounce">🏆</div>
+                        <h4 class="text-lg font-header font-bold text-amber-300">GRATTIS!</h4>
+                        <p id="minigame-win-desc" class="text-xs text-amber-100/90 max-w-xs mx-auto leading-relaxed">
+                            Du klarade utmaningen och tände alla 20 stjärnor! Adventsljuset och dagens stjärna är nu tända! 🎉✨
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- UPPGIFTS-SEKTION FÖR VARDAGAR & LÖRDAGAR -->
             <div id="tasks-container" class="space-y-4 mb-5 hidden">
                 <div class="bg-amber-950/30 border border-amber-500/30 rounded-xl p-4 space-y-4">
                     <h4 class="text-xs font-header font-bold text-amber-300 flex items-center gap-2">
@@ -520,12 +619,12 @@
                     <p id="tasks-feedback" class="text-[11px] text-center font-medium min-h-[16px]"></p>
                 </div>
             </div>
+
             <!-- Innehållssektion (Saga/Video) -->
             <div class="space-y-4">
                 <p id="modal-description" class="text-slate-200 text-xs sm:text-sm leading-relaxed">
                     Här kommer dagens julsaga eller hälsning...
                 </p>
-                <!-- Dedikerad fin ruta för Tomtens Rim -->
                 <div id="modal-rhyme-container" class="hidden bg-amber-500/10 border border-amber-500/30 rounded-xl p-3.5 text-center relative overflow-hidden">
                     <div class="text-[10px] uppercase font-header tracking-widest text-amber-400/80 mb-1 flex items-center justify-center gap-1">
                         <i class="fa-solid fa-feather-pointed"></i> Tomtens Rim
@@ -540,6 +639,7 @@
                     </div>
                 </div>
             </div>
+
             <div class="mt-5 flex justify-end">
                 <button onclick="closeModal()" class="px-5 py-2 bg-gradient-to-r from-red-800 to-red-600 hover:from-red-700 hover:to-red-500 text-white font-semibold text-xs sm:text-sm rounded-xl transition-all shadow-md">
                     Stäng Luckan
@@ -547,6 +647,36 @@
             </div>
         </div>
     </div>
+
+    <!-- Modal för Hemliga Stjärnans Video (Hemligt Klipp) -->
+    <div id="star-secret-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
+        <div class="glass-panel bg-slate-950/95 border border-amber-500/50 rounded-2xl max-w-xl w-full p-5 sm:p-7 relative shadow-2xl">
+            <button onclick="closeStarSecretModal()" class="absolute top-4 right-4 text-gray-400 hover:text-amber-400 text-xl transition-colors w-9 h-9 flex items-center justify-center rounded-full bg-black/50 border border-white/10">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            
+            <div class="flex items-center gap-3 mb-4 border-b border-amber-500/20 pb-3">
+                <div class="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-400 to-indigo-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
+                    <i class="fa-solid fa-star"></i>
+                </div>
+                <div>
+                    <h3 class="font-header text-lg sm:text-xl text-amber-300">Stjärnhimlens Överraskning ✨</h3>
+                    <p class="text-[11px] text-amber-100/60">Du hittade en hemlig stjärna på himlen!</p>
+                </div>
+            </div>
+            
+            <div id="star-secret-media-container" class="w-full aspect-video rounded-xl overflow-hidden bg-black/60 border border-amber-500/20 relative">
+                <iframe id="star-secret-youtube-iframe" class="w-full h-full" src="" title="Hemlig Stjärna Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+
+            <div class="mt-5 flex justify-end">
+                <button onclick="closeStarSecretModal()" class="px-5 py-2 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold text-xs sm:text-sm rounded-xl transition-all shadow-md">
+                    Stäng överraskningen
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modal för hemlig kod -->
     <div id="key-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
         <div class="glass-panel bg-slate-950/95 border border-amber-500/50 rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
@@ -573,6 +703,7 @@
             </form>
         </div>
     </div>
+
     <!-- Modal för Admin / Simulering -->
     <div id="admin-modal" class="fixed inset-0 z-50 modal-backdrop hidden flex items-center justify-center p-4">
         <div class="glass-panel bg-slate-950/95 border border-amber-500/50 rounded-2xl max-w-md w-full p-6 relative shadow-2xl">
@@ -587,7 +718,7 @@
                 <h3 class="font-header text-lg text-amber-300">Simuleringsläge & Inställningar</h3>
                 <p class="text-xs text-amber-100/70 mt-1">Styr datum och tillgänglighet för kalendern.</p>
             </div>
-            <div class="space-y-5">
+            <div class="space-y-4">
                 <div class="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/10">
                     <div>
                         <p class="text-xs font-semibold text-amber-200">Lås upp hela kalendern</p>
@@ -598,6 +729,18 @@
                         <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
                     </label>
                 </div>
+
+                <div class="flex items-center justify-between p-3 bg-black/40 rounded-xl border border-white/10">
+                    <div>
+                        <p class="text-xs font-semibold text-amber-200">Tänd stjärnor baserat på datum</p>
+                        <p class="text-[10px] text-gray-400">Tänder stjärnorna automatiskt upp till datumet</p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer">
+                        <input type="checkbox" id="auto-light-stars-toggle" onchange="toggleAutoLightStars(this.checked)" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-500"></div>
+                    </label>
+                </div>
+
                 <div class="p-3 bg-black/40 rounded-xl border border-white/10 space-y-2">
                     <p class="text-xs font-semibold text-amber-200">Simulera datum i december</p>
                     <div class="flex items-center gap-2">
@@ -612,6 +755,7 @@
                         </select>
                     </div>
                 </div>
+
                 <button onclick="resetToRealDate()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 text-amber-200 text-xs rounded-xl border border-amber-500/20 transition-colors">
                     <i class="fa-solid fa-rotate-left mr-1"></i> Återställ till riktigt datum
                 </button>
@@ -657,86 +801,129 @@
 
     <!-- JAVASCRIPT LOGIK -->
     <script>
-        // Hämta sparade inställningar och framsteg från localStorage
         let savedAdminSettings = JSON.parse(localStorage.getItem('julkalender_settings_2026')) || {};
         let unlockAllMode = savedAdminSettings.unlockAllMode || false;
+        let autoLightStarsMode = savedAdminSettings.autoLightStarsMode || false;
         let simulatedDay = savedAdminSettings.simulatedDay !== undefined ? savedAdminSettings.simulatedDay : null;
         let activeDoorNumber = null;
-        let pendingStarToLight = null; // Lagrar stjärnan som väntar på att tändas tills modalen stängs
-        let pendingCandleToLight = null; // Lagrar ljus som ska tändas när modalen stängs
+        let pendingStarToLight = null;
+        let pendingCandleToLight = null;
         let isSkyViewActive = false;
-        
-        // Tillstånd för klarade uppgifter
+
+        // MINISPEL STATE
+        let minigameScore = 0;
+        const minigameMaxScore = 20;
+        let minigameNum1 = 0;
+        let minigameNum2 = 0;
+        let minigameCorrectAns = 0;
+        let minigameType = 'multiplication';
+        const minigameStarElements = [];
+
+        const minigamePositiveFeedbacks = [
+            "Snyggt jobbat! 🌟",
+            "Helt rätt! 🚀",
+            "Superbra! 👏",
+            "Klockrent! ✨",
+            "Grymt! 💪",
+            "Du är en stjärna! ⭐",
+            "Perfekt! 🎯"
+        ];
+
         let userProgress = JSON.parse(localStorage.getItem('julkalender_progress_2026')) || {};
         
         function saveProgress() {
             localStorage.setItem('julkalender_progress_2026', JSON.stringify(userProgress));
         }
+
         function saveAdminSettings() {
             const settings = {
                 unlockAllMode: unlockAllMode,
+                autoLightStarsMode: autoLightStarsMode,
                 simulatedDay: simulatedDay
             };
             localStorage.setItem('julkalender_settings_2026', JSON.stringify(settings));
         }
 
-        // Stjärnbildskoordinater (procent av skärmen) baserade på riktiga stjärntecken per vecka
-        // Vecka 1 (Lucka 1-4): Aries (Väduren) - 4 stjärnor
-        // Vecka 2 (Lucka 7-11): Cassiopeia - 5 stjärnor
-        // Vecka 3 (Lucka 14-17): Pegasus - 4 stjärnor
+        // Stjärntecken (Karlavagnen, Cassiopeja, Svanen & Orion)
         const constellationData = {
-            'Aries': {
-                name: 'Väduren (Vecka 1)',
-                labelPos: { top: '16%', left: '16%' },
-                doors: [1, 2, 3, 4],
+            'Karlavagnen': {
+                name: 'Karlavagnen (Big Dipper)',
+                labelPos: { top: '15%', left: '16%' },
+                doors: [1, 2, 3, 4, 5, 6, 7],
                 coords: {
-                    1: { top: 22, left: 14 },
-                    2: { top: 25, left: 22 },
-                    3: { top: 31, left: 27 },
-                    4: { top: 35, left: 29 }
+                    1: { top: 30, left: 10 }, // Alkaid
+                    2: { top: 27, left: 16 }, // Mizar
+                    3: { top: 27, left: 22 }, // Alioth
+                    4: { top: 28, left: 28 }, // Megrez
+                    5: { top: 34, left: 29 }, // Phecda
+                    6: { top: 32, left: 37 }, // Merak
+                    7: { top: 23, left: 36 }  // Dubhe
                 },
-                lines: [[1, 2], [2, 3], [3, 4]]
+                lines: [[1, 2], [2, 3], [3, 4], [4, 5], [5, 6], [6, 7], [7, 4]]
             },
             'Cassiopeia': {
-                name: 'Cassiopeia (Vecka 2)',
-                labelPos: { top: '15%', left: '46%' },
-                doors: [7, 8, 9, 10, 11],
+                name: 'Cassiopeja (Cassiopeia)',
+                labelPos: { top: '15%', left: '72%' },
+                doors: [8, 9, 10, 11, 12],
                 coords: {
-                    7:  { top: 20, left: 42 },
-                    8:  { top: 27, left: 46 },
-                    9:  { top: 22, left: 52 },
-                    10: { top: 30, left: 58 },
-                    11: { top: 24, left: 63 }
+                    8:  { top: 20, left: 66 },
+                    9:  { top: 27, left: 71 },
+                    10: { top: 26, left: 77 },
+                    11: { top: 33, left: 82 },
+                    12: { top: 28, left: 88 }
                 },
-                lines: [[7, 8], [8, 9], [9, 10], [10, 11]]
+                lines: [[8, 9], [9, 10], [10, 11], [11, 12]]
             },
-            'Pegasus': {
-                name: 'Pegasus (Vecka 3)',
-                labelPos: { top: '16%', left: '76%' },
-                doors: [14, 15, 16, 17],
+            'Cygnus': {
+                name: 'Svanen (Cygnus)',
+                labelPos: { top: '48%', left: '18%' },
+                doors: [13, 14, 15, 16],
                 coords: {
-                    14: { top: 20, left: 74 },
-                    15: { top: 20, left: 86 },
-                    16: { top: 33, left: 86 },
-                    17: { top: 33, left: 74 }
+                    25: { top: 54, left: 10 }, // Deneb (Blå stjärna)
+                    14: { top: 64, left: 19 }, // Mitten
+                    16: { top: 78, left: 30 }, // Albireo
+                    13: { top: 74, left: 10 }, // Nere Vänster
+                    15: { top: 56, left: 26 }  // Uppe Höger
                 },
-                lines: [[14, 15], [15, 16], [16, 17], [17, 14]]
+                lines: [[13, 14], [14, 15], [25, 14], [14, 16]]
+            },
+            'Orion': {
+                name: 'Orion',
+                labelPos: { top: '48%', left: '72%' },
+                doors: [17, 18, 19, 20, 21, 22, 23, 24],
+                coords: {
+                    17: { top: 54, left: 68 }, // Vänster Axel (Betelgeuse)
+                    18: { top: 50, left: 75 }, // Huvud
+                    19: { top: 55, left: 81 }, // Höger Axel
+                    20: { top: 65, left: 72 }, // Bälte Vänster
+                    21: { top: 66, left: 75 }, // Bälte Mitten
+                    22: { top: 67, left: 78 }, // Bälte Höger
+                    23: { top: 79, left: 70 }, // Saiph (Vänster fot)
+                    24: { top: 81, left: 82 }  // Rigel (Höger fot)
+                },
+                lines: [
+                    [17, 18], [18, 19], [17, 20], [19, 22],
+                    [20, 21], [21, 22],
+                    [20, 23], [22, 24]
+                ]
             }
         };
 
-        // Övriga icke-konstellationsdagar spridda harmoniskt
-        const singleStarCoords = {
-            5:  { top: 48, left: 10 },
-            6:  { top: 48, left: 24 },
-            12: { top: 48, left: 75 },
-            13: { top: 48, left: 88 },
-            18: { top: 62, left: 15 },
-            19: { top: 62, left: 32 },
-            20: { top: 62, left: 50 },
-            21: { top: 62, left: 68 },
-            22: { top: 62, left: 85 },
-            23: { top: 76, left: 38 },
-            24: { top: 76, left: 62 }
+        // Hemliga Youtube-länkar
+        const starYoutubeLinks = {
+            25: "https://www.youtube.com/embed/8lnYWLphMvo",
+            1:  "https://www.youtube.com/embed/WM7M7zSMJcw",
+            3:  "https://www.youtube.com/embed/aAkMkVFwAoo",
+            5:  "https://www.youtube.com/embed/E8gmARGvPlI",
+            8:  "https://www.youtube.com/embed/ESWWoF657VE",
+            10: "https://www.youtube.com/embed/xi4OpBMbyGY",
+            12: "https://www.youtube.com/embed/kpSOWZCSPxo",
+            14: "https://www.youtube.com/embed/j9jbdgZidu8",
+            16: "https://www.youtube.com/embed/TS9vmrBTxEo",
+            18: "https://www.youtube.com/embed/RH-xd5bPKTA",
+            20: "https://www.youtube.com/embed/wKhRnZZ0cJI",
+            22: "https://www.youtube.com/embed/4Q7cIyWadUg",
+            24: "https://www.youtube.com/embed/joWd2P-6keM"
         };
 
         function getStarCoords(doorNum) {
@@ -745,18 +932,18 @@
                     return constellationData[key].coords[doorNum];
                 }
             }
-            return singleStarCoords[doorNum] || { top: 50, left: 50 };
+            return { top: 50, left: 50 };
         }
 
         function constellationsDataKey(key, doorNum) {
-            return constellationData[key].doors.includes(doorNum);
+            if (doorNum === 25 && key === 'Cygnus') return true;
+            return constellationData[key] && constellationData[key].doors ? constellationData[key].doors.includes(doorNum) : false;
         }
 
         function toggleStarSkyView() {
             isSkyViewActive = !isSkyViewActive;
             const mainContent = document.getElementById('main-content-wrapper');
             const btnText = document.getElementById('sky-btn-text');
-
             if (isSkyViewActive) {
                 mainContent.classList.add('hide-calendar');
                 btnText.innerText = "Visa Kalendern";
@@ -785,10 +972,10 @@
                 localStorage.removeItem('julkalender_settings_2026');
                 userProgress = {};
                 unlockAllMode = false;
+                autoLightStarsMode = false;
                 simulatedDay = null;
                 
-                // Släck alla ljus i UI
-                for (let i = 1; i <= 4; i++) {
+                for (let i = 2; i <= 4; i++) {
                     const wrapper = document.getElementById(`flame-wrapper-${i}`);
                     if (wrapper) wrapper.classList.remove('active');
                 }
@@ -800,18 +987,19 @@
                 document.getElementById('reset-error-msg').classList.remove('hidden');
             }
         }
+
         function updateCandlesDisplay() {
-            // Kontrollera vilka ljus som ska vara tända baserat på 4, 11, 17 dec
-            const c1 = userProgress[4] && userProgress[4].task1 && userProgress[4].task2;
-            const c2 = userProgress[11] && userProgress[11].task1 && userProgress[11].task2;
-            const c3 = userProgress[17] && userProgress[17].task1 && userProgress[17].task2;
+            const c1 = true;
+            const c2 = userProgress[6] && userProgress[6].task1 && userProgress[6].task2;
+            const c3 = userProgress[13] && userProgress[13].task1 && userProgress[13].task2;
+            const c4 = userProgress[20] && userProgress[20].task1 && userProgress[20].task2;
+            
             if (c1) setCandleLit(1, false);
             if (c2) setCandleLit(2, false);
-            if (c3) {
-                setCandleLit(3, false);
-                setCandleLit(4, false); // Det fjärde tänds tillsammans med tredje
-            }
+            if (c3) setCandleLit(3, false);
+            if (c4) setCandleLit(4, false);
         }
+
         function setCandleLit(candleNum, withEffects = true) {
             const wrapper = document.getElementById(`flame-wrapper-${candleNum}`);
             if (wrapper && !wrapper.classList.contains('active')) {
@@ -820,20 +1008,18 @@
                     const candleEl = document.getElementById(`candle-${candleNum}`);
                     if (candleEl) {
                         const rect = candleEl.getBoundingClientRect();
-                        const originX = rect.left + rect.width / 2;
-                        const originY = rect.top - 10;
-                        createMagicBurst(originX, originY);
+                        createMagicBurst(rect.left + rect.width / 2, rect.top - 10);
                     }
                 }
             }
         }
+
         function triggerGrandCandleFireworks() {
             const candle4 = document.getElementById('candle-4');
             if (!candle4) return;
             const rect = candle4.getBoundingClientRect();
             const originX = rect.left + rect.width / 2;
             const originY = rect.top - 10;
-            // Avfyra flera magiska fyrverkeriexplosioner
             for (let i = 0; i < 5; i++) {
                 setTimeout(() => {
                     const offsetX = (Math.random() - 0.5) * 120;
@@ -848,10 +1034,10 @@
                 container.classList.add('magic-flash');
             }
         }
+
         function createSnow() {
             const snowContainer = document.getElementById('snow-container');
             const flakeCount = 40;
-            
             for (let i = 0; i < flakeCount; i++) {
                 const flake = document.createElement('div');
                 flake.classList.add('snowflake');
@@ -864,6 +1050,7 @@
                 snowContainer.appendChild(flake);
             }
         }
+
         const canvas = document.getElementById('magic-canvas');
         const ctx = canvas.getContext('2d');
         let magicParticles = [];
@@ -873,6 +1060,7 @@
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
+
         class Particle {
             constructor(x, y) {
                 this.x = x;
@@ -924,12 +1112,14 @@
                 ctx.restore();
             }
         }
+
         function createMagicBurst(originX, originY) {
             const particleCount = 90;
             for (let i = 0; i < particleCount; i++) {
                 magicParticles.push(new Particle(originX, originY));
             }
         }
+
         function animateMagicParticles() {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             for (let i = magicParticles.length - 1; i >= 0; i--) {
@@ -943,6 +1133,7 @@
             requestAnimationFrame(animateMagicParticles);
         }
         animateMagicParticles();
+
         function updateCountdown() {
             const christmasDate = new Date('December 24, 2026 00:00:00').getTime();
             const now = new Date().getTime();
@@ -991,7 +1182,6 @@
             { num: 18, top: 77, left: 86 }
         ];
 
-        // Innehåll och Math-uppgifter för varje dag
         const calendarContent = {
             1: { 
                 title: "Tisdag 1 December", 
@@ -999,8 +1189,7 @@
                 u1: { prompt: "(-7) + (-9) - (-5)", answer: ["-11"] },
                 u2: { prompt: "Area för triangel med bas = 8 cm, höjd = 5 cm", answer: ["20", "20cm2", "20cm²", "20 cm2", "20 cm²"] },
                 desc: "Välkommen till årets magiska julkalender! Svara på dagens två frågor för att tända en guldstjärna!", 
-                rhyme: "När snön i tomteverkstaden yr,\nberäknar vi formen på varje pryl.\nStarta med minus och räkna rätt,\nså blir december en ren bagatell!",
-                video: "" 
+                rhyme: "", video: "" 
             },
             2: { 
                 title: "Onsdag 2 December", 
@@ -1008,8 +1197,7 @@
                 u1: { prompt: "Förenkla: 4a + 7b - 2a - 3b", answer: ["2a+4b", "2a + 4b"] },
                 u2: { prompt: "15% av 600 kr", answer: ["90", "90kr", "90 kr"] },
                 desc: "Härligt jobbat! Glöm inte att lösa båda uppgifterna för att tända en bakgrundsstjärna.", 
-                rhyme: "Fyra a och sju små b,\ntomten funderar: vad kan det bli?\nBlanda ej äpplen med granar i rad,\nräkna ut procenten så blir tomten glad!",
-                video: "" 
+                rhyme: "", video: "" 
             },
             3: { 
                 title: "Torsdag 3 December", 
@@ -1017,38 +1205,38 @@
                 u1: { prompt: "2/5 + 1/3", answer: ["11/15"] },
                 u2: { prompt: "Medelvärde av 4, 7, 8, 9, 12", answer: ["8"] },
                 desc: "Kura ihop dig i vintermörkret och lös dagens kluringar!", 
-                rhyme: "När bråken ska adderas i juleljusets sken,\nmåste nämnaren bli gemensam och ren.\nTa medelvärdet av nissarnas kliv,\nså får du ett magiskt och sifferrikt liv!",
-                video: "" 
+                rhyme: "", video: "" 
             },
             4: { 
-                title: "Fredag 4 December - Julgranskulorna", 
+                title: "Fredag 4 December", 
                 dayType: "weekday",
                 u1: { prompt: "Totalt 48 kulor (röda, blå, guldiga). Dubbelt så många guldiga som blå, och 8 fler röda än blå. Hur många guldiga kulor finns det?", answer: ["20", "20 guldiga", "20guldiga", "20 guldiga kulor"] },
                 u2: { prompt: "Hur många blå kulor finns det i lådan?", answer: ["10", "10 blå", "10blå", "10 blå kulor"] },
-                desc: "Fredagens utmaning! Lös båda frågorna om julgranskulorna för att tända helgens första stjärna och första ljuset!", 
-                rhyme: "Röda och blå och guldiga bollar,\ntomten i lådan med luvan på kollade.\nAnvänd din logik och räkna med fniss,\nså firar du helgen som en äkta matte-niss!",
-                video: "" 
+                desc: "Fredagens utmaning! Lös båda frågorna om julgranskulorna för att tända helgens första stjärna!", 
+                rhyme: "", video: "" 
             },
             5: { 
-                title: "Lördag 5 December - Vargen, geten och kålen", 
-                dayType: "weekend", 
-                desc: "Kluring: En bonde ska transportera en varg, en get och ett kålhuvud över en flod i en liten båt som bara rymmer bonden och en sak i taget. Om vargen lämnas med geten äts geten upp. Om geten lämnas med kålen äts kålen upp. Hur ska bonden göra?", 
-                video: "https://www.youtube.com/embed/WM7M7zSMJcw" 
+                title: "Lördag 5 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Vinkelsumman i en triangel minus 45°", answer: ["135", "135°", "135 deg"] },
+                u2: { prompt: "Vad är 0,75 uttryckt i enklaste bråkform?", answer: ["3/4"] },
+                desc: "Lördagsutmaning! Svara på båda frågorna för att tända dagens stjärna.",
+                video: ""
             },
             6: { 
-                title: "Söndag 6 December - Facit & Nikolaus", 
-                dayType: "weekend", 
-                desc: "Facit: 1. Bonden tar geten över. 2. Åker tillbaka tomhänt. 3. Tar vargen över. 4. Tar geten med tillbaka. 5. Lämnar geten och tar kålen över. 6. Lämnar kålen hos vargen. 7. Åker tillbaka och hämtar geten!", 
-                video: "https://www.youtube.com/embed/aAkMkVFwAoo" 
+                title: "Söndag 6 December - 2:a Advent", 
+                dayType: "minigame",
+                minigameType: "multiplication",
+                desc: "2:a Advent! Klara multiplikationsspelet genom att svara rätt på 20 frågor (tabellerna 1–10). Varje rätt svar tänder en stjärna i ramen. När alla 20 stjärnor lyser tänds det andra adventsljuset!", 
+                video: "" 
             },
             7: { 
                 title: "Måndag 7 December", 
                 dayType: "weekday",
                 u1: { prompt: "Omkrets för rektangel med sidorna 7 cm × 9 cm", answer: ["32", "32cm", "32 cm"] },
                 u2: { prompt: "Skriv 3 800 000 i grundpotensform", answer: ["3,8*10^6", "3.8*10^6", "3,8·10^6", "3,8*106", "3.8*106", "3,8x10^6", "3,8 10^6"] },
-                desc: "Ny vecka och nya utmaningar! Måndagen nollställer förra veckans spärrar.", 
-                rhyme: "Runt paketet går bandet i cirklar och steg,\nomkretsen beräknas på tomtevis väg!\nMiljontals klappar i potensernas land,\nräknas snabbt ut av en matematikerhand.",
-                video: "" 
+                desc: "Ny vecka och nya utmaningar!", 
+                rhyme: "", video: "" 
             },
             8: { 
                 title: "Tisdag 8 December", 
@@ -1056,8 +1244,7 @@
                 u1: { prompt: "Lös ekvationen: 5x - 8 = 22", answer: ["x=6", "6"] },
                 u2: { prompt: "Sannolikhet att få mer än 4 på en sexsidig tärning", answer: ["1/3", "2/6"] },
                 desc: "Tomteverkstaden ångar på! Lös uppgifterna och samla fler stjärnor.", 
-                rhyme: "Ekvationer i snön när x söker svar,\nflytta åttan till höger och se vad du har!\nTärningen rullar i tomtarnas spel,\nchansen till vinst blir aldrig nåt fel.",
-                video: "" 
+                rhyme: "", video: "" 
             },
             9: { 
                 title: "Onsdag 9 December", 
@@ -1065,37 +1252,37 @@
                 u1: { prompt: "800 kr sänks med 25%. Vad blir det nya priset?", answer: ["600", "600kr", "600 kr"] },
                 u2: { prompt: "Det n-te talet i talföljden 5, 9, 13, 17 ...", answer: ["4n+1", "4n + 1"] },
                 desc: "Halvvägs genom veckan! Du kämpar på jättebra.", 
-                rhyme: "Julrean börjar med rea i procent,\nräkna ut rabatten så blir dagen väl känd.\nTalföljden ökar med fyra i sänder,\nse vilket mönster som i verkstan nu händer!",
-                video: "" 
+                rhyme: "", video: "" 
             },
             10: { 
                 title: "Torsdag 10 December", 
                 dayType: "weekday",
                 u1: { prompt: "Omkrets för cirkel med radie r = 5 cm (Använd pi = 3,14)", answer: ["31,4", "31.4", "31,4cm", "31.4cm"] },
                 u2: { prompt: "Beräkna: (-3) · (-6) - 10", answer: ["8"] },
-                desc: "Snyggt klarat! Imorgon väntar fredagens bakutmaning.", 
-                rhyme: "Runt julgransfoten dras radie och pi,\nen cirkelrund magi beräknar vi!\nMinus gånger minus blir plus ska du se,\ntomtematematik ger oss frid och gôtt té.",
-                video: "" 
+                desc: "Snyggt klarat! Lös frågorna för att tända stjärnan.", 
+                rhyme: "", video: "" 
             },
             11: { 
-                title: "Fredag 11 December - Lussebullsbaket", 
+                title: "Fredag 11 December", 
                 dayType: "weekday",
                 u1: { prompt: "Tre bagare (Anna, Bertil, Cecilia). Anna bakar dubbelt så snabbt som Bertil. Cecilia bakar 10 bullar mer än Anna/h. Tillsammans bakar de 110 bullar på 2 timmar. Hur många bakar Bertil per timme?", answer: ["9", "9 bullar", "9 bullar/h", "9bullar"] },
                 u2: { prompt: "Hur många bakar Cecilia per timme?", answer: ["28", "28 bullar", "28 bullar/h", "28bullar"] },
-                desc: "Lussebullsbaket! Lös båda uppgifterna för att tända stjärnan och det andra ljuset.", 
-                rhyme: "Ugnen är varm och saffran doftar så gott,\nberäkna hur många lussebullar de fått!\nNär tre bagare kavlar och bakar i takt,\nhar matte och logik hela köket i makt.",
-                video: "" 
+                desc: "Lussebullsbaket! Lös båda uppgifterna för att tända fredagsstjärnan.", 
+                rhyme: "", video: "" 
             },
             12: { 
-                title: "Lördag 12 December - De två repen", 
-                dayType: "weekend", 
-                desc: "Kluring: Du har två rep. Varje rep tar exakt 1 timme (60 min) att brinna upp, men de brinner oregelbundet. Hur kan du mäta upp exakt 45 minuter med hjälp av repen och tändstickor?", 
-                video: "https://www.youtube.com/embed/E8gmARGvPlI" 
+                title: "Lördag 12 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Beräkna 5² - 3²", answer: ["16"] },
+                u2: { prompt: "Delar du ett snöre på 120 cm i tre delar med förhållandet 1:2:3, hur lång är den längsta delen?", answer: ["60", "60cm", "60 cm"] },
+                desc: "Lördagsutmaning! Lös kluringarna och tänd dagens stjärna.",
+                video: ""
             },
             13: { 
-                title: "Söndag 13 December - Glad Lucia & Facit", 
-                dayType: "weekend", 
-                desc: "Glad Lucia! Facit till 'De två repen': Tänd Rep A i båda ändar och Rep B i ena änden. När Rep A brunnit ut (30 min), tänd den andra änden på Rep B. När Rep B brunnit ut har det gått exakt 45 minuter!", 
+                title: "Söndag 13 December - Glad Lucia & 3:e Advent", 
+                dayType: "minigame", 
+                minigameType: "division",
+                desc: "Glad Lucia & 3:e Advent! Klara divisionsspelet genom att svara rätt på 20 frågor (tabellerna 1–10). När alla 20 stjärnor i ramen lyser tänds det tredje adventsljuset!", 
                 video: "https://www.youtube.com/embed/QVc5rAzMQCs" 
             },
             14: { 
@@ -1103,9 +1290,8 @@
                 dayType: "weekday",
                 u1: { prompt: "3 kg äpplen kostar 75 kr. Vad kostar 7 kg?", answer: ["175", "175kr", "175 kr"] },
                 u2: { prompt: "Beräkna: (3/4) · (8/9)", answer: ["2/3"] },
-                desc: "Start på Luciaveckan! Måndagen nollställer veckans spärrar.", 
-                rhyme: "Matäpplen köps till julgrötens doft,\nproportionalitet gör uträkningen mjuk som en stoft.\nGångra två bråk och förkorta med flit,\nså hamnar du rätt i tomte-kredit!",
-                video: "" 
+                desc: "Start på Luciaveckan! Lös båda frågorna.", 
+                rhyme: "", video: "" 
             },
             15: { 
                 title: "Tisdag 15 December", 
@@ -1113,44 +1299,87 @@
                 u1: { prompt: "Längd på hypotenusan i en rätvinklig triangel med kateterna 6 cm & 8 cm", answer: ["10", "10cm", "10 cm"] },
                 u2: { prompt: "Hur många procent är 12 cm av 60 cm?", answer: ["20%", "20", "20 %"] },
                 desc: "Riktigt bra jobbat i tomteverkstaden!", 
-                rhyme: "Pythagoras triangel i granens topp står,\nmed hypotenusan vi svaret snabbt får.\nHur stor del av stegen har tomten nu klivit?\nEn femtedel eller procent har det blivit!",
-                video: "" 
+                rhyme: "", video: "" 
             },
             16: { 
                 title: "Onsdag 16 December", 
                 dayType: "weekday",
                 u1: { prompt: "Beräkna värdet av 2x - 3y om x = 4 och y = -2", answer: ["14"] },
                 u2: { prompt: "Bestäm medianen för talen: 3, 5, 5, 6, 8, 9, 13", answer: ["6"] },
-                desc: "Knäck och julgodis koka! Imorgon väntar sista mattekampen.", 
-                rhyme: "Sätt in x och y bland knäck och korint,\nberäkna med tecken och var riktigt fint!\nHitta mitten i raden bland talen som står,\nmed medianen i hamn vi till julhelgen når.",
-                video: "" 
+                desc: "Knäck och julgodis koka! Lös uppgifterna.", 
+                rhyme: "", video: "" 
             },
             17: { 
-                title: "Torsdag 17 December - Restaurangnotan", 
+                title: "Torsdag 17 December", 
                 dayType: "weekday",
-                u1: { prompt: "Fyra vänner ska dela nota. En glömde plånboken så de tre andra betalar 80 kr extra var. Vad kostade hela notan totalt?", answer: ["960", "960kr", "960 kr"] },
-                u2: { prompt: "Hur mycket skulle varje person egentligen betala från början?", answer: ["240", "240kr", "240 kr"] },
-                desc: "Sista mattekampen innan julledigheten! Lös notan för att tända sista vardagsstjärnan samt de sista adventsljusen!", 
-                rhyme: "Att dela en nota kan ibland vara svårt,\nnär kompisar glömmer betala sitt kort.\nMen löser du ekvationen med flit,\ntänds sista ljuset i strålande vit!",
+                u1: { prompt: "Beräkna 2⁴ + 3²", answer: ["25"] },
+                u2: { prompt: "4 vänner delar nota. En har inga pengar, övriga 3 betalar 80 kr extra var. Vad var totalkostnaden?", answer: ["960", "960kr", "960 kr"] },
+                desc: "Torsdagsutmaning! Svara på båda frågorna för att tända stjärnan.", 
+                rhyme: "", video: "" 
+            },
+            18: { 
+                title: "Fredag 18 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Skala 1:5000. Hur lång är 4 cm på kartan i verkligheten?", answer: ["200m", "200 m", "200"] },
+                u2: { prompt: "Vinkelsumman i en sexhörning (hexagon)", answer: ["720", "720°", "720 deg"] },
+                desc: "Fredagsutmaning! Lös båda frågorna för att tända stjärnan.", 
                 video: "" 
             },
-            18: { title: "Fredag 18 December", dayType: "weekend", desc: "Sista skoldagen för många! Slå dig ner och njut av dagens stämningsfulla julklipp.", video: "https://www.youtube.com/embed/94Ye-3C1FC8" },
-            19: { title: "Lördag 19 December", dayType: "weekend", desc: "Klä granen med kulor, glitter och ljus! Njut av julmusiken.", video: "https://www.youtube.com/embed/A8eWaR8ONvw" },
-            20: { title: "Söndag 20 December", dayType: "weekend", desc: "Fjärde advent! Nu är det nära julafton.", video: "https://www.youtube.com/embed/ESWWoF657VE" },
-            21: { title: "Måndag 21 December", dayType: "weekend", desc: "Vintersolståndet! Årets kortaste dag, nu vänder det mot ljuset.", video: "https://www.youtube.com/embed/xi4OpBMbyGY" },
-            22: { title: "Tisdag 22 December", dayType: "weekend", desc: "Nu råder full uppesittarstämning i huset!", video: "https://www.youtube.com/embed/kpSOWZCSPxo" },
-            23: { title: "Onsdag 23 December - Dan före dan", dayType: "weekend", desc: "Dan före dopparedagen! Skinkan är griljerad och paketen inslagna.", video: "https://www.youtube.com/embed/j9jbdgZidu8" },
-            24: { title: "Julafton 24 December", dayType: "weekend", desc: "GOD JUL! Njut av Kalle Anka och hans vänner och ha en underbar julafton!", video: "https://www.youtube.com/embed/l49a9z8xBL0" }
+            19: { 
+                title: "Lördag 19 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Skriv 0,0045 i grundpotensform", answer: ["4,5*10^-3", "4.5*10^-3", "4,5·10^-3", "4,5*10-3", "4.5*10-3"] },
+                u2: { prompt: "Beräkna 3/5 - 1/4", answer: ["7/20"] },
+                desc: "Klä granen och lös dagens två matteurmaningar!", 
+                video: "https://www.youtube.com/embed/A8eWaR8ONvw" 
+            },
+            20: { 
+                title: "Söndag 20 December - 4:e Advent", 
+                dayType: "minigame", 
+                minigameType: "mixed",
+                desc: "Fjärde advent! Klara den mixade utmaningen (multiplikation & division 1–10) för att tända 20 stjärnor i ramen och tända det fjärde adventsljuset!", 
+                video: "" 
+            },
+            21: { 
+                title: "Måndag 21 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Lös ekvationen: x/4 - 7 = 5", answer: ["x=48", "48"] },
+                u2: { prompt: "Priset på en jacka höjs med 10% och därefter med 20%. Vad är den totala procentuella höjningen?", answer: ["32%", "32", "32 %"] },
+                desc: "Vintersolståndet! Lös frågorna för att tända stjärnan.", 
+                video: "" 
+            },
+            22: { 
+                title: "Tisdag 22 December", 
+                dayType: "weekday", 
+                u1: { prompt: "Beräkna värdet av a² - b² om a = 9 och b = 7", answer: ["32"] },
+                u2: { prompt: "Vad är typvärdet för datamängden 4, 2, 8, 4, 9, 4, 6, 2?", answer: ["4"] },
+                desc: "Uppesittarstämning! Lös båda matematikuppgifterna.", 
+                video: "" 
+            },
+            23: { 
+                title: "Onsdag 23 December - Dan före dan", 
+                dayType: "weekday", 
+                u1: { prompt: "Vad blir (5/6) ÷ (2/3) i enklaste bråkform?", answer: ["5/4"] },
+                u2: { prompt: "En cirkel har omkretsen 18,84 cm. Vad är dess radie? (pi ≈ 3,14)", answer: ["3cm", "3 cm", "3"] },
+                desc: "Dan före dopparedagen! Svara på frågorna för att tända sista stjärnan innan julafton.", 
+                video: "" 
+            },
+            24: { 
+                title: "Julafton 24 December", 
+                dayType: "weekend", 
+                desc: "GOD JUL! Njut av Kalle Anka och hans vänner och ha en underbar julafton!", 
+                video: "https://www.youtube.com/embed/l49a9z8xBL0" 
+            }
         };
 
         function getCurrentDayInDecember() {
             if (simulatedDay !== null) return simulatedDay;
             const now = new Date();
             const year = now.getFullYear();
-            const month = now.getMonth(); // 11 = Dec
+            const month = now.getMonth();
             const date = now.getDate();
-            if (year < 2026 || (year === 2026 && month < 11)) return 0; // Före dec 2026
-            if (year > 2026 || (year === 2026 && month === 11 && date > 24)) return 24; // Efter 24 dec
+            if (year < 2026 || (year === 2026 && month < 11)) return 0;
+            if (year > 2026 || (year === 2026 && month === 11 && date > 24)) return 24;
             return date;
         }
 
@@ -1159,7 +1388,6 @@
             if (!container) return;
             container.innerHTML = '';
             
-            // Rita ut etiketter för konstellationerna
             for (let cKey in constellationData) {
                 const c = constellationData[cKey];
                 const label = document.createElement('div');
@@ -1171,36 +1399,63 @@
                 container.appendChild(label);
             }
 
+            // Rita ut de 24 vanliga stjärnorna
             doorPositions.forEach(pos => {
                 const star = document.createElement('div');
                 star.id = `bg-star-${pos.num}`;
                 star.className = 'bg-star';
                 
-                // Använd de strukturerade stjärntecken-koordinaterna
                 const c = getStarCoords(pos.num);
                 star.style.top = `${c.top}%`;
                 star.style.left = `${c.left}%`;
-
                 star.innerHTML = '<i class="fa-solid fa-star"></i>';
                 container.appendChild(star);
             });
+
+            // Rita ut den 25:e blåa stjärnan (Deneb i Svanen)
+            const blueStar = document.createElement('div');
+            blueStar.id = 'bg-star-25';
+            blueStar.className = 'bg-star blue-star lit clickable-star';
+            const c25 = getStarCoords(25);
+            blueStar.style.top = `${c25.top}%`;
+            blueStar.style.left = `${c25.left}%`;
+            blueStar.innerHTML = '<i class="fa-solid fa-star"></i>';
+            blueStar.onclick = (e) => openStarSecretModal(25);
+            container.appendChild(blueStar);
+
             updateStarsDisplay();
+        }
+
+        function isStarActive(doorNum) {
+            if (doorNum === 25) return true;
+            if (userProgress[doorNum] && userProgress[doorNum].starLit) return true;
+            if (autoLightStarsMode) {
+                const curDay = getCurrentDayInDecember();
+                if (curDay >= doorNum) return true;
+            }
+            return false;
         }
 
         function updateStarsDisplay() {
             doorPositions.forEach(pos => {
                 const starEl = document.getElementById(`bg-star-${pos.num}`);
                 if (starEl) {
-                    const isLit = userProgress[pos.num] && userProgress[pos.num].starLit;
+                    const isLit = isStarActive(pos.num);
                     if (isLit) {
                         starEl.classList.add('lit');
                     } else {
                         starEl.classList.remove('lit');
                     }
+
+                    if (starYoutubeLinks[pos.num] && isLit) {
+                        starEl.classList.add('clickable-star');
+                        starEl.onclick = (e) => openStarSecretModal(pos.num);
+                    } else {
+                        starEl.classList.remove('clickable-star');
+                        starEl.onclick = null;
+                    }
                 }
             });
-
-            // Kontrollera om konstellationslinjer ska ritas
             drawConstellationLines();
         }
 
@@ -1211,14 +1466,12 @@
 
             for (let cKey in constellationData) {
                 const c = constellationData[cKey];
-                // Kontrollera om ALLA stjärnor i detta stjärntecken är tända
-                const allLit = c.doors.every(dNum => userProgress[dNum] && userProgress[dNum].starLit);
-
+                const allLit = c.doors.every(dNum => isStarActive(dNum));
                 const labelEl = document.getElementById(`const-label-${cKey}`);
+
                 if (allLit) {
                     if (labelEl) labelEl.classList.add('visible');
                     
-                    // Rita alla linjer för detta stjärntecken
                     c.lines.forEach(pair => {
                         const fromDoor = pair[0];
                         const toDoor = pair[1];
@@ -1228,7 +1481,6 @@
                         if (fromEl && toEl) {
                             const rect1 = fromEl.getBoundingClientRect();
                             const rect2 = toEl.getBoundingClientRect();
-
                             const x1 = rect1.left + rect1.width / 2;
                             const y1 = rect1.top + rect1.height / 2;
                             const x2 = rect2.left + rect2.width / 2;
@@ -1249,17 +1501,28 @@
             }
         }
 
-        function checkPreviousDayPassed(dayNum) {
-            if (dayNum === 1) return true;
-            if (dayNum === 7 || dayNum === 14 || dayNum === 21) return true;
-            if (dayNum >= 18) return true;
-            const content = calendarContent[dayNum];
-            if (content && content.dayType === 'weekend') return true;
-            
-            const prevNum = dayNum - 1;
-            const prevProg = userProgress[prevNum];
-            if (!prevProg) return false;
-            return (prevProg.task1 && prevProg.task2);
+        function openStarSecretModal(starNum) {
+            const videoUrl = starYoutubeLinks[starNum];
+            if (!videoUrl) return;
+
+            const modal = document.getElementById('star-secret-modal');
+            const iframe = document.getElementById('star-secret-youtube-iframe');
+            if (iframe) iframe.src = videoUrl + "?autoplay=1";
+
+            if (modal) modal.classList.remove('hidden');
+
+            const starEl = document.getElementById(`bg-star-${starNum}`);
+            if (starEl) {
+                const rect = starEl.getBoundingClientRect();
+                createMagicBurst(rect.left + rect.width / 2, rect.top + rect.height / 2);
+            }
+        }
+
+        function closeStarSecretModal() {
+            const modal = document.getElementById('star-secret-modal');
+            const iframe = document.getElementById('star-secret-youtube-iframe');
+            if (iframe) iframe.src = "";
+            if (modal) modal.classList.add('hidden');
         }
 
         function renderDoors() {
@@ -1285,13 +1548,10 @@
                 door.style.top = `${pos.top}%`;
                 door.style.left = `${pos.left}%`;
                 door.id = `door-elem-${doorNum}`;
-
+                
                 const isDateAvailable = unlockAllMode || (currentDay >= doorNum);
-                const isPrevPassed = checkPreviousDayPassed(doorNum);
-
-                // Kontrollera om luckan är helt klarad
                 const isCompleted = userProgress[doorNum] && userProgress[doorNum].task1 && userProgress[doorNum].task2;
-
+                
                 if (isCompleted) {
                     door.classList.add('opened');
                     door.innerHTML = `
@@ -1303,29 +1563,19 @@
                     door.innerHTML = `
                         <span class="door-number text-sm sm:text-base opacity-70">${doorNum}</span>
                     `;
-                } else if (!isPrevPassed) {
-                    // Datumet är inne, MEN förhindrad för att man inte gjort gårdagens uppgift!
-                    door.classList.add('locked');
-                    door.innerHTML = `
-                        <span class="door-number text-sm sm:text-base opacity-80">${doorNum}</span>
-                    `;
                 } else {
-                    // Tillgänglig att öppna!
                     door.innerHTML = `
                         <span class="door-number text-base sm:text-lg">${doorNum}</span>
                     `;
                 }
-
-                door.onclick = (e) => handleDoorClick(e, doorNum, isDateAvailable, isPrevPassed);
+                door.onclick = (e) => handleDoorClick(e, doorNum, isDateAvailable);
                 container.appendChild(door);
             });
             updateStarsDisplay();
         }
 
-        function handleDoorClick(e, doorNum, isDateAvailable, isPrevPassed) {
+        function handleDoorClick(e, doorNum, isDateAvailable) {
             const doorEl = document.getElementById(`door-elem-${doorNum}`);
-
-            // FALL 1: Låst pga datumet inte har varit än
             if (!isDateAvailable) {
                 const currentDay = getCurrentDayInDecember();
                 if (currentDay === 0) {
@@ -1333,56 +1583,24 @@
                 } else {
                     showToast(`Lucka ${doorNum} kan inte öppnas än! Vänta till den ${doorNum} december. 🎅`);
                 }
-                triggerShake(doorEl);
-                return;
-            }
-
-            // FALL 2: Datumet ÄR inne, MEN förhindrad pga ouppfyllda krav igår -> Spela animering!
-            if (!isPrevPassed) {
-                const prevNum = doorNum - 1;
-                showToast(`Du måste klara båda uppgifterna i lucka ${prevNum} innan du kan öppna lucka ${doorNum}! ⭐️`);
                 playPreventedAnimation(doorEl, doorNum);
                 return;
             }
-
-            // FALL 3: Tillåten att öppna
             openDoor(doorNum);
-        }
-
-        function triggerShake(element) {
-            if (!element) return;
-            element.classList.add('animate-bounce');
-            setTimeout(() => {
-                element.classList.remove('animate-bounce');
-            }, 600);
         }
 
         function playPreventedAnimation(element, doorNum) {
             if (!element) return;
-            
-            // Slumpa en av de 3 godkända animationerna (0 = Snurra, 1 = Skaka, 2 = Fällas ihop)
             const rand = Math.floor(Math.random() * 3);
-
             if (rand === 0) {
-                // 1. Snurra runt, krymp och försvinn
                 element.classList.add('anim-spin-shrink');
-                setTimeout(() => {
-                    renderDoors();
-                }, 1300);
-
+                setTimeout(() => renderDoors(), 1300);
             } else if (rand === 1) {
-                // 2. Skaka kraftigt och tyna bort tillfälligt
                 element.classList.add('anim-shake-fade');
-                setTimeout(() => {
-                    renderDoors();
-                }, 1300);
-
+                setTimeout(() => renderDoors(), 1300);
             } else {
-                // 3. Dra ihop uppifrån och ner (fällas ihop från toppen till botten)
                 element.classList.add('anim-vertical-collapse');
-                setTimeout(() => {
-                    renderDoors();
-                }, 1300);
+                setTimeout(() => renderDoors(), 1300);
             }
         }
 
@@ -1390,15 +1608,201 @@
             const toast = document.getElementById('toast-message');
             const toastText = document.getElementById('toast-text');
             if (!toast || !toastText) return;
-
             toastText.innerText = message;
             toast.classList.remove('translate-y-20', 'opacity-0', 'pointer-events-none');
             toast.classList.add('translate-y-0', 'opacity-100');
-
             setTimeout(() => {
                 toast.classList.remove('translate-y-0', 'opacity-100');
                 toast.classList.add('translate-y-20', 'opacity-0', 'pointer-events-none');
             }, 3800);
+        }
+
+        // MINISPEL SKAPA STJÄRNRAM (Topp=6, Höger=4, Botten=6, Vänster=4)
+        function createMinigameStarFrame() {
+            const starContainers = {
+                top: document.getElementById('top-stars'),
+                right: document.getElementById('right-stars'),
+                bottom: document.getElementById('bottom-stars'),
+                left: document.getElementById('left-stars')
+            };
+
+            if (!starContainers.top) return;
+
+            Object.values(starContainers).forEach(el => el.innerHTML = '');
+            minigameStarElements.length = 0;
+
+            const distribution = [
+                { container: starContainers.top, count: 6 },
+                { container: starContainers.right, count: 4 },
+                { container: starContainers.bottom, count: 6, reverse: true },
+                { container: starContainers.left, count: 4, reverse: true }
+            ];
+
+            let index = 0;
+            distribution.forEach(group => {
+                const tempStars = [];
+                for (let i = 0; i < group.count; i++) {
+                    const star = document.createElement('i');
+                    star.className = 'fa-solid fa-star text-sm sm:text-base minigame-star-inactive transform';
+                    star.dataset.index = index;
+                    tempStars.push(star);
+                    index++;
+                }
+                if (group.reverse) {
+                    tempStars.reverse();
+                }
+                tempStars.forEach(star => {
+                    group.container.appendChild(star);
+                    minigameStarElements.push(star);
+                });
+            });
+
+            minigameStarElements.sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index));
+        }
+
+        function updateMinigameStarsDisplay() {
+            for (let i = 0; i < minigameMaxScore; i++) {
+                if (minigameStarElements[i]) {
+                    if (i < minigameScore) {
+                        minigameStarElements[i].classList.remove('minigame-star-inactive');
+                        minigameStarElements[i].classList.add('minigame-star-active');
+                    } else {
+                        minigameStarElements[i].classList.remove('minigame-star-active');
+                        minigameStarElements[i].classList.add('minigame-star-inactive');
+                    }
+                }
+            }
+            const progressBar = document.getElementById('minigame-progress-bar');
+            if (progressBar) {
+                const percentage = (minigameScore / minigameMaxScore) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+
+        function setupMinigameForDoor(doorNum, mode) {
+            createMinigameStarFrame();
+            minigameType = mode || 'multiplication';
+            
+            const isCompleted = userProgress[doorNum] && userProgress[doorNum].task1 && userProgress[doorNum].task2;
+            minigameScore = isCompleted ? 20 : 0;
+            
+            updateMinigameStarsDisplay();
+
+            const playArea = document.getElementById('minigame-play-area');
+            const winScreen = document.getElementById('minigame-win-screen');
+            const titleEl = document.getElementById('minigame-title');
+            const descEl = document.getElementById('minigame-desc');
+
+            if (minigameType === 'multiplication') {
+                titleEl.innerHTML = '<i class="fa-solid fa-xmark text-amber-400"></i> Multiplikationstabellen (1–10)';
+                descEl.innerText = "Klara 20 rätta svar för att tända alla stjärnor och det andra adventsljuset! ⭐";
+            } else if (minigameType === 'division') {
+                titleEl.innerHTML = '<i class="fa-solid fa-divide text-amber-400"></i> Divisionstabellen (1–10)';
+                descEl.innerText = "Klara 20 rätta svar för att tända alla stjärnor och det tredje adventsljuset! ⭐";
+            } else {
+                titleEl.innerHTML = '<i class="fa-solid fa-calculator text-amber-400"></i> Mixad Utmaning (1–10)';
+                descEl.innerText = "Klara 20 rätta svar för att tända alla stjärnor och det fjärde adventsljuset! ⭐";
+            }
+
+            if (isCompleted) {
+                playArea.classList.add('hidden');
+                winScreen.classList.remove('hidden');
+            } else {
+                playArea.classList.remove('hidden');
+                winScreen.classList.add('hidden');
+                generateMinigameProblem();
+            }
+        }
+
+        function generateMinigameProblem() {
+            let mode = minigameType;
+            if (mode === 'mixed') {
+                mode = Math.random() > 0.5 ? 'multiplication' : 'division';
+            }
+
+            if (mode === 'multiplication') {
+                minigameNum1 = Math.floor(Math.random() * 10) + 1;
+                minigameNum2 = Math.floor(Math.random() * 10) + 1;
+                minigameCorrectAns = minigameNum1 * minigameNum2;
+                document.getElementById('minigame-problem-text').innerText = `${minigameNum1} × ${minigameNum2} = ?`;
+            } else {
+                minigameNum2 = Math.floor(Math.random() * 10) + 1;
+                minigameCorrectAns = Math.floor(Math.random() * 10) + 1;
+                minigameNum1 = minigameNum2 * minigameCorrectAns;
+                document.getElementById('minigame-problem-text').innerText = `${minigameNum1} ÷ ${minigameNum2} = ?`;
+            }
+
+            const input = document.getElementById('minigame-input');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 100);
+            }
+        }
+
+        function showMinigameFeedback(text, isSuccess) {
+            const feedbackText = document.getElementById('minigame-feedback-text');
+            const feedback = document.getElementById('minigame-feedback');
+            if (!feedback || !feedbackText) return;
+
+            feedbackText.innerText = text;
+            feedback.className = `h-6 text-xs font-bold flex items-center justify-center transition-all duration-200 opacity-100 ${
+                isSuccess ? 'text-emerald-400' : 'text-red-400'
+            }`;
+
+            setTimeout(() => {
+                feedback.classList.add('opacity-0');
+            }, 1800);
+        }
+
+        function handleMinigameSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('minigame-input');
+            const userAns = parseInt(input.value.trim(), 10);
+            if (isNaN(userAns)) return;
+
+            const card = document.getElementById('minigame-question-card');
+
+            if (userAns === minigameCorrectAns) {
+                minigameScore++;
+                updateMinigameStarsDisplay();
+                const randomFb = minigamePositiveFeedbacks[Math.floor(Math.random() * minigamePositiveFeedbacks.length)];
+                showMinigameFeedback(randomFb, true);
+
+                if (card) {
+                    card.classList.add('scale-105');
+                    setTimeout(() => card.classList.remove('scale-105'), 200);
+                }
+
+                if (minigameScore >= minigameMaxScore) {
+                    if (!userProgress[activeDoorNumber]) {
+                        userProgress[activeDoorNumber] = {};
+                    }
+                    userProgress[activeDoorNumber].task1 = true;
+                    userProgress[activeDoorNumber].task2 = true;
+                    userProgress[activeDoorNumber].starLit = true;
+                    saveProgress();
+
+                    pendingStarToLight = activeDoorNumber;
+                    if (activeDoorNumber === 6) pendingCandleToLight = 2;
+                    if (activeDoorNumber === 13) pendingCandleToLight = 3;
+                    if (activeDoorNumber === 20) pendingCandleToLight = 4;
+
+                    document.getElementById('minigame-play-area').classList.add('hidden');
+                    document.getElementById('minigame-win-screen').classList.remove('hidden');
+                    createMagicBurst(window.innerWidth / 2, window.innerHeight / 2);
+                    renderDoors();
+                } else {
+                    generateMinigameProblem();
+                }
+            } else {
+                showMinigameFeedback(`Inte riktigt rätt. Försök igen! 💪`, false);
+                if (card) {
+                    card.classList.add('shake-card');
+                    setTimeout(() => card.classList.remove('shake-card'), 400);
+                }
+                input.value = '';
+                input.focus();
+            }
         }
 
         function openDoor(number) {
@@ -1413,7 +1817,6 @@
             document.getElementById('modal-title').innerText = content.title;
             document.getElementById('modal-description').innerText = content.desc;
             
-            // Rim/Dikt-sektion (visas ENBART om luckan innehåller ett Youtubeklipp)
             const rhymeContainer = document.getElementById('modal-rhyme-container');
             const rhymeText = document.getElementById('modal-rhyme-text');
             if (content.rhyme && content.video) {
@@ -1423,25 +1826,28 @@
                 rhymeContainer.classList.add('hidden');
             }
 
+            const minigameContainer = document.getElementById('minigame-container');
             const tasksContainer = document.getElementById('tasks-container');
-            const feedbackEl = document.getElementById('tasks-feedback');
-            feedbackEl.innerText = '';
 
-            if (content.dayType === 'weekday' && content.u1 && content.u2) {
+            if (content.dayType === 'minigame') {
+                tasksContainer.classList.add('hidden');
+                minigameContainer.classList.remove('hidden');
+                setupMinigameForDoor(number, content.minigameType);
+            } else if (content.dayType === 'weekday' && content.u1 && content.u2) {
+                minigameContainer.classList.add('hidden');
                 tasksContainer.classList.remove('hidden');
                 document.getElementById('task-1-label').innerText = `Uppgift 1: ${content.u1.prompt}`;
                 document.getElementById('task-2-label').innerText = `Uppgift 2: ${content.u2.prompt}`;
-
                 const prog = userProgress[number] || { task1: false, task2: false };
                 
                 const t1Input = document.getElementById('task-1-input');
                 const t2Input = document.getElementById('task-2-input');
                 t1Input.value = prog.t1Ans || '';
                 t2Input.value = prog.t2Ans || '';
-
                 updateTaskInputStatus(1, prog.task1);
                 updateTaskInputStatus(2, prog.task2);
             } else {
+                minigameContainer.classList.add('hidden');
                 tasksContainer.classList.add('hidden');
             }
 
@@ -1459,6 +1865,19 @@
                 iframe.classList.add('hidden');
                 placeholder.classList.add('hidden');
                 mediaContainer.classList.add('hidden');
+            }
+
+            // Om det är julafton (lucka 24), markera uppgifterna som klarade så stjärnan tänds när luckan stängs
+            if (number === 24) {
+                if (!userProgress[24]) {
+                    userProgress[24] = {};
+                }
+                userProgress[24].task1 = true;
+                userProgress[24].task2 = true;
+                userProgress[24].starLit = true;
+                pendingStarToLight = 24;
+                saveProgress();
+                renderDoors();
             }
 
             const modal = document.getElementById('door-modal');
@@ -1493,20 +1912,16 @@
             if (!activeDoorNumber) return;
             const content = calendarContent[activeDoorNumber];
             if (!content || !content.u1 || !content.u2) return;
-
             const u1User = document.getElementById('task-1-input').value;
             const u2User = document.getElementById('task-2-input').value;
-
             const u1Clean = cleanAnswer(u1User);
             const u2Clean = cleanAnswer(u2User);
-
             const isU1Correct = content.u1.answer.some(ans => cleanAnswer(ans) === u1Clean);
             const isU2Correct = content.u2.answer.some(ans => cleanAnswer(ans) === u2Clean);
 
             if (!userProgress[activeDoorNumber]) {
                 userProgress[activeDoorNumber] = { starLit: false };
             }
-
             userProgress[activeDoorNumber].task1 = isU1Correct;
             userProgress[activeDoorNumber].task2 = isU2Correct;
             userProgress[activeDoorNumber].t1Ans = u1User;
@@ -1519,18 +1934,11 @@
             const feedbackEl = document.getElementById('tasks-feedback');
             if (isU1Correct && isU2Correct) {
                 feedbackEl.className = "text-[11px] text-center font-bold text-emerald-400";
-                feedbackEl.innerText = "Snyggt! Båda rätt! Stjärnan och ev. adventsljus tänds när du stänger luckan! ⭐";
+                feedbackEl.innerText = "Snyggt! Båda rätt! Stjärnan tänds när du stänger luckan! ⭐";
                 
-                // Markera att stjärnan ska tändas när luckan stängs
                 if (!userProgress[activeDoorNumber].starLit) {
                     pendingStarToLight = activeDoorNumber;
                 }
-
-                // Kontrollera om denna dag tänder ett ljus
-                if (activeDoorNumber === 4) pendingCandleToLight = 1;
-                if (activeDoorNumber === 11) pendingCandleToLight = 2;
-                if (activeDoorNumber === 17) pendingCandleToLight = 3;
-
                 renderDoors();
             } else if (isU1Correct || isU2Correct) {
                 feedbackEl.className = "text-[11px] text-center font-bold text-amber-300";
@@ -1546,13 +1954,11 @@
             const modalCard = document.getElementById('modal-card');
             const iframe = document.getElementById('modal-youtube-iframe');
             if (iframe) iframe.src = "";
-
             if (modalCard) {
                 modalCard.classList.remove('scale-100', 'opacity-100');
                 modalCard.classList.add('scale-95', 'opacity-0');
             }
             
-            // Om vi har en väntande stjärna att tända
             if (pendingStarToLight) {
                 if (userProgress[pendingStarToLight]) {
                     userProgress[pendingStarToLight].starLit = true;
@@ -1560,7 +1966,6 @@
                 }
                 updateStarsDisplay();
                 
-                // Trigger en magisk partikeleffekt från stjärnan i bakgrunden
                 const starEl = document.getElementById(`bg-star-${pendingStarToLight}`);
                 if (starEl) {
                     const rect = starEl.getBoundingClientRect();
@@ -1569,20 +1974,13 @@
                 pendingStarToLight = null;
             }
 
-            // Om vi har ett väntande ljus att tända
             if (pendingCandleToLight !== null) {
                 const candleToLight = pendingCandleToLight;
                 pendingCandleToLight = null;
-
                 setTimeout(() => {
                     setCandleLit(candleToLight, true);
-                    
-                    // Om det 3:e ljuset tänds (17:e Dec), tänd även det 4:e ljuset med ett extra fyrverkeri
-                    if (candleToLight === 3) {
-                        setTimeout(() => {
-                            setCandleLit(4, true);
-                            triggerGrandCandleFireworks();
-                        }, 800);
+                    if (candleToLight === 4) {
+                        triggerGrandCandleFireworks();
                     }
                 }, 400);
             }
@@ -1605,7 +2003,6 @@
         function handleCodeSubmit(e) {
             e.preventDefault();
             const inputCode = document.getElementById('key-code-input').value.trim().toLowerCase();
-            
             if (inputCode === 'julaftonsmorgon') {
                 closeKeyModal();
                 openAdminModal();
@@ -1615,8 +2012,8 @@
         }
 
         function openAdminModal() {
-            // Sätt controllernas värden baserat på sparade inställningar
             document.getElementById('unlock-all-toggle').checked = unlockAllMode;
+            document.getElementById('auto-light-stars-toggle').checked = autoLightStarsMode;
             document.getElementById('simulated-day-select').value = (simulatedDay !== null) ? simulatedDay.toString() : 'real';
             document.getElementById('admin-modal').classList.remove('hidden');
         }
@@ -1631,6 +2028,12 @@
             renderDoors();
         }
 
+        function toggleAutoLightStars(checked) {
+            autoLightStarsMode = checked;
+            saveAdminSettings();
+            updateStarsDisplay();
+        }
+
         function setSimulatedDay(val) {
             simulatedDay = (val === 'real') ? null : parseInt(val, 10);
             saveAdminSettings();
@@ -1639,9 +2042,11 @@
 
         function resetToRealDate() {
             unlockAllMode = false;
+            autoLightStarsMode = false;
             simulatedDay = null;
             saveAdminSettings();
             document.getElementById('unlock-all-toggle').checked = false;
+            document.getElementById('auto-light-stars-toggle').checked = false;
             document.getElementById('simulated-day-select').value = 'real';
             renderDoors();
             closeAdminModal();
@@ -1655,7 +2060,10 @@
             updateCandlesDisplay();
             updateCountdown();
             setInterval(updateCountdown, 1000);
-            window.addEventListener('resize', drawConstellationLines);
+            window.addEventListener('resize', () => {
+                resizeCanvas();
+                drawConstellationLines();
+            });
         };
     </script>
 </body>
