@@ -1515,7 +1515,10 @@
 
             const modal = document.getElementById('star-secret-modal');
             const iframe = document.getElementById('star-secret-youtube-iframe');
-            if (iframe) iframe.src = videoUrl + "?autoplay=1";
+            if (iframe) {
+                const separator = videoUrl.includes('?') ? '&' : '?';
+                iframe.src = videoUrl + separator + "autoplay=1";
+            }
 
             if (modal) modal.classList.remove('hidden');
 
@@ -1865,7 +1868,8 @@
 
             if (content.video) {
                 mediaContainer.classList.remove('hidden');
-                iframe.src = content.video + "?autoplay=1";
+                const separator = content.video.includes('?') ? '&' : '?';
+                iframe.src = content.video + separator + "autoplay=1";
                 iframe.classList.remove('hidden');
                 placeholder.classList.add('hidden');
             } else {
