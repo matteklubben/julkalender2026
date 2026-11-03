@@ -359,7 +359,7 @@
         }
     </style>
 </head>
-<body class="p-3 md:p-6 flex flex-col justify-between min-h-screen relative">
+<body class="p-2 md:p-3 flex flex-col justify-between h-screen overflow-hidden relative">
     <!-- 24+1 Bakgrundsstjärnor & Konstellations-SVG -->
     <div id="stars-bg-container"></div>
     <svg id="constellations-svg"></svg>
@@ -369,17 +369,17 @@
     <canvas id="magic-canvas"></canvas>
 
     <!-- Header med knappen Visa Stjärnhimlen -->
-    <header class="text-center mb-4 relative z-40">
-        <h1 class="font-christmas text-4xl sm:text-6xl md:text-7xl text-amber-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] tracking-wide">
+    <header class="text-center mb-1 sm:mb-2 relative z-40 shrink-0">
+        <h1 class="font-christmas text-3xl sm:text-5xl md:text-6xl text-amber-300 drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)] tracking-wide leading-none">
             God Jul & Gott Nytt År
         </h1>
-        <p class="font-header text-amber-100/80 text-xs sm:text-sm md:text-base tracking-widest uppercase mt-0.5 flex items-center justify-center gap-2">
+        <p class="font-header text-amber-100/80 text-[10px] sm:text-xs tracking-widest uppercase mt-0.5 flex items-center justify-center gap-2">
             <span>Klassisk Magisk Julkalender</span>
-            <span id="active-date-badge" class="hidden px-2 py-0.5 text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full normal-case font-sans"></span>
+            <span id="active-date-badge" class="hidden px-2 py-0.5 text-[9px] bg-amber-500/20 text-amber-300 border border-amber-500/40 rounded-full normal-case font-sans"></span>
         </p>
-        <div class="mt-3">
+        <div class="mt-1.5">
             <button id="toggle-sky-btn" onclick="toggleStarSkyView()" 
-                    class="px-4 py-2 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold text-xs sm:text-sm rounded-full shadow-lg border border-amber-300/40 transition-all transform hover:scale-105 flex items-center justify-center gap-2 mx-auto">
+                    class="px-3 py-1 sm:py-1.5 bg-gradient-to-r from-amber-600/90 to-yellow-600/90 hover:from-amber-500 hover:to-yellow-500 text-slate-950 font-bold text-[11px] sm:text-xs rounded-full shadow-lg border border-amber-300/40 transition-all transform hover:scale-105 flex items-center justify-center gap-1.5 mx-auto">
                 <i class="fa-solid fa-star"></i>
                 <span id="sky-btn-text">Visa Stjärnhimlen</span>
             </button>
@@ -387,23 +387,23 @@
     </header>
 
     <!-- Huvudcontainer med slide-effekt för att fälla ner kalendern -->
-    <div id="main-content-wrapper" class="content-sliding-wrapper flex-grow flex flex-col justify-between relative z-20">
-        <main class="max-w-[1500px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-6 items-start relative z-20 mb-4">
+    <div id="main-content-wrapper" class="content-sliding-wrapper flex-grow flex flex-col justify-between relative z-20 min-h-0 overflow-hidden">
+        <main class="max-w-[1400px] mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-3 md:gap-4 items-center relative z-20 flex-grow min-h-0 overflow-hidden">
             
             <!-- VÄNSTER KOLUMN -->
-            <section class="lg:col-span-3 flex flex-col gap-5">
+            <section class="lg:col-span-3 flex flex-col gap-2.5 sm:gap-3">
                 <!-- Adventsljusstake -->
-                <div id="candlestick-card" class="glass-panel p-4 sm:p-5 rounded-2xl text-center relative overflow-hidden">
-                    <h2 class="font-header text-base text-amber-300 mb-4 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                <div id="candlestick-card" class="glass-panel p-3 sm:p-4 rounded-xl text-center relative overflow-hidden">
+                    <h2 class="font-header text-xs sm:text-sm text-amber-300 mb-2 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-star text-amber-400 text-[9px]"></i>
                         Adventsljusstake
-                        <i class="fa-solid fa-star text-amber-400 text-[10px]"></i>
+                        <i class="fa-solid fa-star text-amber-400 text-[9px]"></i>
                     </h2>
-                    <div id="candlestick-container" class="candlestick-wrapper relative w-full max-w-[220px] mx-auto h-36 flex items-end justify-center pb-3">
+                    <div id="candlestick-container" class="candlestick-wrapper relative w-full max-w-[190px] mx-auto h-24 sm:h-28 flex items-end justify-center pb-2">
                         
                         <!-- Ljus 1 (Tänds 29 nov) -->
-                        <div class="flex flex-col items-center absolute bottom-5 left-[10%]">
-                            <div id="candle-1" class="candle w-4 h-14">
+                        <div class="flex flex-col items-center absolute bottom-4 left-[10%]">
+                            <div id="candle-1" class="candle w-3.5 h-10 sm:h-12">
                                 <div class="candle-wick"></div>
                                 <div id="flame-wrapper-1" class="flame-wrapper active">
                                     <div class="magic-aura"></div>
@@ -412,8 +412,8 @@
                             </div>
                         </div>
                         <!-- Ljus 2 (Tänds 6 dec) -->
-                        <div class="flex flex-col items-center absolute bottom-5 left-[32%]">
-                            <div id="candle-2" class="candle w-4 h-20">
+                        <div class="flex flex-col items-center absolute bottom-4 left-[32%]">
+                            <div id="candle-2" class="candle w-3.5 h-14 sm:h-16">
                                 <div class="candle-wick"></div>
                                 <div id="flame-wrapper-2" class="flame-wrapper">
                                     <div class="magic-aura"></div>
@@ -422,8 +422,8 @@
                             </div>
                         </div>
                         <!-- Ljus 3 (Tänds 13 dec) -->
-                        <div class="flex flex-col items-center absolute bottom-5 right-[32%]">
-                            <div id="candle-3" class="candle w-4 h-24">
+                        <div class="flex flex-col items-center absolute bottom-4 right-[32%]">
+                            <div id="candle-3" class="candle w-3.5 h-16 sm:h-20">
                                 <div class="candle-wick"></div>
                                 <div id="flame-wrapper-3" class="flame-wrapper">
                                     <div class="magic-aura"></div>
@@ -432,8 +432,8 @@
                             </div>
                         </div>
                         <!-- Ljus 4 (Tänds 20 dec) -->
-                        <div class="flex flex-col items-center absolute bottom-5 right-[10%]">
-                            <div id="candle-4" class="candle w-4 h-28">
+                        <div class="flex flex-col items-center absolute bottom-4 right-[10%]">
+                            <div id="candle-4" class="candle w-3.5 h-20 sm:h-24">
                                 <div class="candle-wick"></div>
                                 <div id="flame-wrapper-4" class="flame-wrapper">
                                     <div class="magic-aura"></div>
@@ -442,42 +442,42 @@
                             </div>
                         </div>
                         <div class="w-full flex items-end justify-center relative">
-                            <div class="candlestick-base w-full h-3.5 z-10"></div>
+                            <div class="candlestick-base w-full h-3 z-10"></div>
                         </div>
                     </div>
                 </div>
 
                 <!-- Nedräkning till julafton -->
-                <div class="glass-panel p-4 sm:p-5 rounded-2xl text-center">
-                    <h2 class="font-header text-sm text-amber-200 mb-3 flex items-center justify-center gap-2">
-                        <i class="fa-solid fa-clock text-amber-400"></i>
+                <div class="glass-panel p-3 sm:p-4 rounded-xl text-center">
+                    <h2 class="font-header text-xs text-amber-200 mb-2 flex items-center justify-center gap-1.5">
+                        <i class="fa-solid fa-clock text-amber-400 text-xs"></i>
                         Nedräkning till Julafton
                     </h2>
-                    <div class="grid grid-cols-4 gap-1.5 text-center">
-                        <div class="bg-black/50 border border-amber-500/20 p-2 rounded-lg">
-                            <span id="countdown-days" class="block font-header text-lg sm:text-xl font-bold text-amber-300">00</span>
-                            <span class="text-[9px] uppercase text-gray-400 tracking-wider">Dagar</span>
+                    <div class="grid grid-cols-4 gap-1 text-center">
+                        <div class="bg-black/50 border border-amber-500/20 p-1.5 rounded-lg">
+                            <span id="countdown-days" class="block font-header text-base sm:text-lg font-bold text-amber-300">00</span>
+                            <span class="text-[8px] uppercase text-gray-400 tracking-wider">Dagar</span>
                         </div>
-                        <div class="bg-black/50 border border-amber-500/20 p-2 rounded-lg">
-                            <span id="countdown-hours" class="block font-header text-lg sm:text-xl font-bold text-amber-300">00</span>
-                            <span class="text-[9px] uppercase text-gray-400 tracking-wider">Timmar</span>
+                        <div class="bg-black/50 border border-amber-500/20 p-1.5 rounded-lg">
+                            <span id="countdown-hours" class="block font-header text-base sm:text-lg font-bold text-amber-300">00</span>
+                            <span class="text-[8px] uppercase text-gray-400 tracking-wider">Timmar</span>
                         </div>
-                        <div class="bg-black/50 border border-amber-500/20 p-2 rounded-lg">
-                            <span id="countdown-minutes" class="block font-header text-lg sm:text-xl font-bold text-amber-300">00</span>
-                            <span class="text-[9px] uppercase text-gray-400 tracking-wider">Min</span>
+                        <div class="bg-black/50 border border-amber-500/20 p-1.5 rounded-lg">
+                            <span id="countdown-minutes" class="block font-header text-base sm:text-lg font-bold text-amber-300">00</span>
+                            <span class="text-[8px] uppercase text-gray-400 tracking-wider">Min</span>
                         </div>
-                        <div class="bg-black/50 border border-amber-500/20 p-2 rounded-lg">
-                            <span id="countdown-seconds" class="block font-header text-lg sm:text-xl font-bold text-amber-300">00</span>
-                            <span class="text-[9px] uppercase text-gray-400 tracking-wider">Sek</span>
+                        <div class="bg-black/50 border border-amber-500/20 p-1.5 rounded-lg">
+                            <span id="countdown-seconds" class="block font-header text-base sm:text-lg font-bold text-amber-300">00</span>
+                            <span class="text-[8px] uppercase text-gray-400 tracking-wider">Sek</span>
                         </div>
                     </div>
                 </div>
             </section>
 
             <!-- HÖGER KOLUMN: Stor kalendertavla -->
-            <section class="lg:col-span-9">
-                <div class="picture-frame rounded-xl overflow-hidden shadow-2xl relative">
-                    <div class="relative w-full aspect-[16/10] bg-slate-900 overflow-hidden select-none">
+            <section class="lg:col-span-9 flex justify-center items-center h-full min-h-0">
+                <div class="picture-frame rounded-xl overflow-hidden shadow-2xl relative w-full max-h-[72vh] aspect-[16/10]">
+                    <div class="relative w-full h-full bg-slate-900 overflow-hidden select-none">
                         <img src="https://images.unsplash.com/photo-1543589077-47d513165c1a?auto=format&fit=crop&w=1600&q=80" 
                              alt="Julkalender Bakgrund" 
                              class="w-full h-full object-cover filter brightness-[0.9] contrast-[1.05]"
@@ -490,15 +490,15 @@
         </main>
 
         <!-- Footer -->
-        <footer class="flex items-center justify-between text-xs text-amber-200/50 py-2 relative z-30 px-2">
+        <footer class="flex items-center justify-between text-[11px] text-amber-200/50 py-1 relative z-30 px-2 shrink-0">
             <button onclick="openKeyPromptModal()" title="Admin & Simuleringsläge" 
-                    class="w-10 h-10 rounded-full bg-slate-900/80 border border-amber-500/40 text-amber-400 hover:text-amber-200 hover:border-amber-400 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                <i class="fa-solid fa-key group-hover:rotate-45 transition-transform duration-300"></i>
+                    class="w-8 h-8 rounded-full bg-slate-900/80 border border-amber-500/40 text-amber-400 hover:text-amber-200 hover:border-amber-400 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                <i class="fa-solid fa-key text-xs group-hover:rotate-45 transition-transform duration-300"></i>
             </button>
-            <p class="text-[11px] text-center flex-grow">© 2026 Skapad med julvärme | Lös uppgifterna och upptäck överraskningarna!</p>
+            <p class="text-[10px] text-center flex-grow">© 2026 Skapad med julvärme | Lös uppgifterna och upptäck överraskningarna!</p>
             <button onclick="openResetModal()" title="Nollställ alla framsteg" 
-                    class="w-10 h-10 rounded-full bg-slate-900/80 border border-red-500/30 text-red-400/70 hover:text-red-300 hover:border-red-400 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
-                <i class="fa-solid fa-trash-can group-hover:scale-110 transition-transform duration-300"></i>
+                    class="w-8 h-8 rounded-full bg-slate-900/80 border border-red-500/30 text-red-400/70 hover:text-red-300 hover:border-red-400 flex items-center justify-center transition-all transform hover:scale-110 shadow-lg group">
+                <i class="fa-solid fa-trash-can text-xs group-hover:scale-110 transition-transform duration-300"></i>
             </button>
         </footer>
     </div>
