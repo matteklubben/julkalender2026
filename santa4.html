@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julgransbelysningen 🎄✨</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for Christmas headers & typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: radial-gradient(circle at center, #0d061a 0%, #080414 60%, #04020a 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-serif-gold {
+      font-family: 'Cinzel', Georgia, serif;
+    }
+
+    /* Golden text styling */
+    .gold-title-text {
+      background: linear-gradient(180deg, #fff8c4 0%, #f5c542 45%, #d18d0d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.8));
+    }
+
+    /* Outer Container Frame matching reference style */
+    .gold-frame {
+      background-color: #080b18;
+      border: 2px solid #d4af37;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.35), inset 0 0 20px rgba(0, 0, 0, 0.9);
+      border-radius: 1.25rem;
+    }
+
+    /* Festive Gold/Amber Gradient Button */
+    .gold-btn {
+      background: linear-gradient(135deg, #d36b00 0%, #e68a00 50%, #c45b00 100%);
+      border: 1px solid #ffe082;
+      box-shadow: 0 4px 15px rgba(211, 107, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.15s ease-in-out;
+    }
+    .gold-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(230, 138, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      filter: brightness(1.1);
+    }
+    .gold-btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    /* Stat Pill Badges */
+    .stat-badge {
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+    }
+
+    /* Shake animation for incorrect answer */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake-error {
+      animation: shake 0.35s ease-in-out;
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.6) !important;
+    }
+
+    /* Remove native HTML number arrows */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-center p-2 sm:p-3 relative">
+
+  <!-- Background Animated Snow Canvas -->
+  <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- MAIN GAME CONTAINER FRAME (Ultra Compact Layout) -->
+  <main class="w-full max-w-xl flex-1 flex flex-col justify-center items-center z-10 my-auto relative">
+    <div class="w-full gold-frame p-2.5 sm:p-4 flex flex-col justify-between items-center relative overflow-hidden">
+
+      <!-- INTEGRATED COMPACT HEADER -->
+      <header class="w-full flex flex-row items-center justify-between gap-2 border-b border-amber-500/30 pb-2 mb-2">
+        <!-- Title -->
+        <div class="flex items-center gap-1.5">
+          <span class="text-lg sm:text-xl">🎄</span>
+          <h1 class="text-lg sm:text-xl md:text-2xl font-serif-gold font-bold tracking-wider gold-title-text uppercase">
+            Julgransbelysningen 💡
+          </h1>
+        </div>
+
+        <!-- Stat Badges (Level, Score, Trees Lit) -->
+        <div class="flex items-center gap-1.5 sm:gap-2">
+          <div class="stat-badge rounded-full px-2.5 py-0.5 text-xs font-bold text-amber-300 flex items-center gap-1">
+            <span>⭐</span>
+            <span>NIVÅ <span id="levelDisplay">1</span></span>
+          </div>
+          <div class="stat-badge rounded-full px-2.5 py-0.5 text-xs font-bold text-amber-300 flex items-center gap-1">
+            <span>🏆</span>
+            <span id="scoreDisplay">0</span> p
+          </div>
+          <div class="stat-badge rounded-full px-2.5 py-0.5 text-xs font-bold text-emerald-400 flex items-center gap-1">
+            <span>🎄</span>
+            <span><span id="treesLitDisplay">0</span></span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================= 1. START MENU SCREEN ================= -->
+      <div id="startMenuScreen" class="w-full my-auto flex flex-col items-center text-center space-y-3 py-6">
+        <div class="flex items-center justify-center gap-2 text-3xl sm:text-4xl">
+          <span>🎄</span>
+          <span>💡</span>
+          <span>✨</span>
+        </div>
+
+        <div class="max-w-sm">
+          <h2 class="text-xl sm:text-2xl font-serif-gold font-bold gold-title-text mb-1.5">
+            TÄND JULGRANENS LAMPOR!
+          </h2>
+          <p class="text-slate-300 text-xs leading-relaxed">
+            Hjälp till att tända granen inför julafton! Lista ut mönstret i talserien på ljusslingan och tänd lamporna en i taget.
+          </p>
+        </div>
+
+        <button onclick="startGame()" class="gold-btn px-6 py-2.5 rounded-full text-sm font-bold text-white uppercase tracking-wider flex items-center gap-1.5 mt-1">
+          STARTA SPELET 🎄
+        </button>
+      </div>
+
+      <!-- ================= 2. ACTIVE GAMEPLAY SCREEN ================= -->
+      <div id="gameplayScreen" class="w-full hidden flex-col items-center flex-1 justify-between gap-2 relative">
+        
+        <!-- SEQUENCE DISPLAY BANNER & HINT BUTTON -->
+        <div class="w-full bg-slate-950/80 border border-amber-500/40 rounded-lg p-2 text-center flex flex-col items-center gap-1 shadow-inner">
+          <div id="sequenceTextBanner" class="text-base sm:text-lg font-bold text-amber-200 tracking-wider font-serif-gold flex items-center flex-wrap justify-center gap-1.5">
+            <!-- Dynamically populated numbers e.g. 2 • 4 • ? • 8 • 10 -->
+          </div>
+
+          <!-- Hint Toggle Button & Hint Display Box -->
+          <div class="flex flex-col items-center gap-1 w-full max-w-sm pt-0.5">
+            <button id="hintToggleBtn" type="button" onclick="toggleHint()" class="px-3 py-0.5 bg-amber-950/80 hover:bg-amber-900 border border-amber-500/50 rounded-full text-[11px] font-bold text-amber-300 flex items-center gap-1 transition shadow hover:scale-105">
+              <span>💡</span>
+              <span id="hintToggleBtnText">Visa Ledtråd</span>
+            </button>
+            <div id="hintBox" class="hidden w-full bg-amber-950/90 border border-amber-400/60 rounded-lg px-2.5 py-1 text-center text-[11px] text-amber-200 font-semibold shadow-lg backdrop-blur">
+              <!-- Hint text inserted dynamically here -->
+            </div>
+          </div>
+        </div>
+
+        <!-- GAME ARENA CANVAS (Low-Height Tree) -->
+        <div class="relative w-full flex-1 overflow-hidden rounded-lg border border-amber-500/30 bg-slate-950/90 shadow-inner">
+          <canvas id="treeCanvas" width="580" height="220" class="w-full h-[220px] block"></canvas>
+
+          <!-- TREE COMPLETED VICTORY OVERLAY -->
+          <div id="treeCompletedOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-sm z-20 hidden flex-col items-center justify-center text-center p-3">
+            <div class="text-3xl mb-1 animate-bounce">🎄✨</div>
+            <h3 class="text-xl sm:text-2xl font-serif-gold font-bold gold-title-text mb-0.5">GRANEN ÄR FULLT TÄND!</h3>
+            <p class="text-amber-200 text-xs font-semibold mb-1">Strålande jobbat! Alla lampor glittrar!</p>
+            <p id="bonusText" class="text-[11px] text-emerald-400 font-bold mb-3">+30 Bonuspoäng!</p>
+            <button onclick="nextTree()" class="gold-btn px-5 py-2 rounded-full text-xs font-bold text-white uppercase tracking-wide">
+              TÄND NÄSTA GRAN ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- Clean Input Box below Canvas -->
+        <form onsubmit="handleFormSubmit(event)" class="w-full max-w-md flex items-center gap-2">
+          <input type="number" id="answerInput" placeholder="Skriv nästa tal på lampan..." autocomplete="off" autofocus
+                 class="flex-1 bg-slate-950 border-2 border-amber-500/60 rounded-lg px-3 py-1.5 text-center text-lg sm:text-xl font-bold text-amber-300 placeholder:text-slate-500 placeholder:text-xs focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-500/30 transition shadow-inner" />
+
+          <button type="submit" class="gold-btn px-4 py-2 rounded-lg text-xs font-bold text-white uppercase shrink-0 flex items-center gap-1">
+            Tänd 💡
+          </button>
+        </form>
+      </div>
+
+      <!-- ================= 3. GAME OVER / LEVEL CLEAR SCREEN ================= -->
+      <div id="gameOverScreen" class="w-full my-auto hidden flex-col items-center text-center space-y-3 py-4">
+        <div class="text-4xl animate-bounce">🌟🎄</div>
+        <div>
+          <h2 class="text-xl sm:text-2xl font-serif-gold font-bold gold-title-text mb-1">Alla Granar Strålar!</h2>
+          <p class="text-slate-300 text-xs">Du är en sann mästare på julbelysning!</p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-amber-500/40 rounded-xl p-3.5 w-full max-w-xs space-y-2 shadow-xl">
+          <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+            <span class="text-slate-400">Total Poäng:</span>
+            <span id="finalScoreDisplay" class="text-lg font-bold text-amber-400">0</span>
+          </div>
+          <div class="flex justify-between items-center text-xs border-b border-slate-800 pb-1.5">
+            <span class="text-slate-400">Tända Granar:</span>
+            <span id="finalTreesDisplay" class="text-sm font-bold text-emerald-400">0</span>
+          </div>
+          <div class="flex justify-between items-center text-xs">
+            <span class="text-slate-400">Utmärkelse:</span>
+            <span id="performanceBadge" class="text-xs font-bold text-amber-300">🌟 Stjärntändare</span>
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 pt-1">
+          <button onclick="startGame()" class="gold-btn px-6 py-2 rounded-full text-xs font-bold text-white uppercase tracking-wider">
+            SPELA IGEN 🎄
+          </button>
+          <button onclick="showStartMenu()" class="px-5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-xs font-bold transition uppercase">
+            Huvudmeny 🏠
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    /* ================= 1. AUDIO SYNTHESIZER (Web Audio API) ================= */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      try {
+        initAudio();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'lightUp') {
+          const freqs = [523.25, 783.99, 1046.50];
+          freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + i * 0.06);
+            gain.gain.setValueAtTime(0.12, now + i * 0.06);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.06 + 0.35);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.06);
+            osc.stop(now + i * 0.06 + 0.35);
+          });
+
+        } else if (type === 'treeLit') {
+          const freqs = [523.25, 659.25, 783.99, 1046.50, 1318.51];
+          freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(f, now + i * 0.07);
+            gain.gain.setValueAtTime(0.15, now + i * 0.07);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.07 + 0.5);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.07);
+            osc.stop(now + i * 0.07 + 0.5);
+          });
+
+        } else if (type === 'error') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(160, now);
+          osc.frequency.exponentialRampToValueAtTime(110, now + 0.2);
+          gain.gain.setValueAtTime(0.15, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.2);
+
+        } else if (type === 'click') {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(600, now);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.05);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.05);
+        }
+      } catch (e) {
+        console.log("Audio notice");
+      }
+    }
+
+    /* ================= 2. BACKGROUND SNOW ANIMATION ================= */
+    const snowCanvas = document.getElementById('snowCanvas');
+    const snowCtx = snowCanvas.getContext('2d');
+    let flakes = [];
+
+    function resizeSnowCanvas() {
+      snowCanvas.width = window.innerWidth;
+      snowCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeSnowCanvas);
+    resizeSnowCanvas();
+
+    for (let i = 0; i < 60; i++) {
+      flakes.push({
+        x: Math.random() * snowCanvas.width,
+        y: Math.random() * snowCanvas.height,
+        r: Math.random() * 2.5 + 1,
+        speedY: Math.random() * 0.7 + 0.3,
+        opacity: Math.random() * 0.7 + 0.3
+      });
+    }
+
+    function renderSnowBg() {
+      snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+      snowCtx.fillStyle = 'white';
+      flakes.forEach(f => {
+        snowCtx.beginPath();
+        snowCtx.globalAlpha = f.opacity;
+        snowCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        snowCtx.fill();
+
+        f.y += f.speedY;
+        f.x += Math.sin(f.y * 0.01) * 0.3;
+
+        if (f.y > snowCanvas.height) {
+          f.y = -5;
+          f.x = Math.random() * snowCanvas.width;
+        }
+      });
+      requestAnimationFrame(renderSnowBg);
+    }
+    renderSnowBg();
+
+    /* ================= 3. GAME STATE ================= */
+    let score = 0;
+    let currentLevel = 1;
+    let treesLitCount = 0;
+    let isGameActive = false;
+    let isTreeCompleted = false;
+
+    let seqLength = 6;
+    let currentSequence = [];
+    let missingIndicesQueue = [];
+    let solvedIndices = new Set();
+    let currentHintText = "";
+    let isHintVisible = false;
+
+    let particles = [];
+    let animationFrameId = null;
+
+    // Canvas & Context
+    const treeCanvas = document.getElementById('treeCanvas');
+    const tCtx = treeCanvas.getContext('2d');
+
+    // DOM Elements
+    const levelDisplay = document.getElementById('levelDisplay');
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const treesLitDisplay = document.getElementById('treesLitDisplay');
+    const answerInput = document.getElementById('answerInput');
+    const sequenceTextBanner = document.getElementById('sequenceTextBanner');
+
+    const startMenuScreen = document.getElementById('startMenuScreen');
+    const gameplayScreen = document.getElementById('gameplayScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const treeCompletedOverlay = document.getElementById('treeCompletedOverlay');
+
+    function startGame() {
+      initAudio();
+      score = 0;
+      currentLevel = 1;
+      treesLitCount = 0;
+      isGameActive = true;
+      isTreeCompleted = false;
+
+      updateStatsUI();
+
+      startMenuScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      treeCompletedOverlay.classList.add('hidden');
+      treeCompletedOverlay.classList.remove('flex');
+
+      gameplayScreen.classList.remove('hidden');
+      gameplayScreen.classList.add('flex');
+
+      generateNextSequence();
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      renderLoop();
+    }
+
+    function updateStatsUI() {
+      scoreDisplay.innerText = score;
+      levelDisplay.innerText = currentLevel;
+      treesLitDisplay.innerText = treesLitCount;
+    }
+
+    function focusInput() {
+      setTimeout(() => {
+        answerInput.focus();
+      }, 50);
+    }
+
+    /* ================= 4. PROGRESSIVE SEQUENCE GENERATOR ================= */
+    function generateNextSequence() {
+      isTreeCompleted = false;
+      solvedIndices.clear();
+      missingIndicesQueue = [];
+      answerInput.value = '';
+      answerInput.classList.remove('shake-error');
+
+      isHintVisible = false;
+      document.getElementById('hintBox').classList.add('hidden');
+      document.getElementById('hintToggleBtnText').innerText = "Visa Ledtråd";
+
+      let seq = [];
+
+      let missingCount = 1;
+      if (currentLevel >= 2) {
+        missingCount = Math.random() > 0.45 ? 2 : 1;
+      }
+
+      if (missingCount === 2) {
+        seqLength = Math.random() > 0.5 ? 7 : 8;
+      } else {
+        seqLength = Math.random() > 0.5 ? 5 : 6;
+      }
+
+      if (currentLevel === 1) {
+        // Level 1: Simple (+2, +3, +4, +5, +10) — NO +1 STEPS!
+        const steps = [2, 3, 4, 5, 10];
+        const step = steps[Math.floor(Math.random() * steps.length)];
+        let start = Math.floor(Math.random() * 10) + 1;
+        for (let i = 0; i < seqLength; i++) seq.push(start + i * step);
+
+        currentHintText = `Varje lampa ökar med ${step}`;
+        pickMissingIndices(seqLength, missingCount);
+
+      } else if (currentLevel === 2) {
+        // Level 2: Addition or Subtraction (+2, +3, +4, +5, +10 or -2, -3, -5, -10)
+        const steps = [2, 3, 4, 5, 10];
+        const step = steps[Math.floor(Math.random() * steps.length)];
+        const isAdd = Math.random() > 0.35;
+
+        if (isAdd) {
+          let start = Math.floor(Math.random() * 15) + 1;
+          for (let i = 0; i < seqLength; i++) seq.push(start + i * step);
+          currentHintText = `Varje lampa ökar med ${step}`;
+        } else {
+          let start = Math.floor(Math.random() * 15) + (seqLength * step);
+          for (let i = 0; i < seqLength; i++) seq.push(start - i * step);
+          currentHintText = `Talet minskar med ${step} i varje steg`;
+        }
+
+        pickMissingIndices(seqLength, missingCount);
+
+      } else if (currentLevel === 3) {
+        // Level 3: (+3, +4, +6, +8), (-3, -4, -6, -8) or (*2)
+        const randType = Math.floor(Math.random() * 3);
+
+        if (randType === 0) {
+          const step = [3, 4, 6, 8][Math.floor(Math.random() * 4)];
+          let start = Math.floor(Math.random() * 20) + 2;
+          for (let i = 0; i < seqLength; i++) seq.push(start + i * step);
+          currentHintText = `Varje lampa ökar med ${step}`;
+        } else if (randType === 1) {
+          const step = [3, 4, 6, 8][Math.floor(Math.random() * 4)];
+          let start = Math.floor(Math.random() * 20) + (seqLength * step);
+          for (let i = 0; i < seqLength; i++) seq.push(start - i * step);
+          currentHintText = `Talet minskar med ${step} i varje steg`;
+        } else {
+          let start = Math.floor(Math.random() * 3) + 1;
+          for (let i = 0; i < seqLength; i++) seq.push(start * Math.pow(2, i));
+          currentHintText = `Talet dubbleras (×2) för varje lampa`;
+        }
+
+        pickMissingIndices(seqLength, missingCount);
+
+      } else {
+        // Level 4+: Advanced
+        const randType = Math.floor(Math.random() * 4);
+
+        if (randType === 0) {
+          let step = Math.floor(Math.random() * 6) + 4;
+          let start = Math.floor(Math.random() * 20) + 5;
+          for (let i = 0; i < seqLength; i++) seq.push(start + i * step);
+          currentHintText = `Varje lampa ökar med ${step}`;
+        } else if (randType === 1) {
+          let step = Math.floor(Math.random() * 6) + 4;
+          let start = Math.floor(Math.random() * 25) + (seqLength * step);
+          for (let i = 0; i < seqLength; i++) seq.push(start - i * step);
+          currentHintText = `Talet minskar med ${step} i varje steg`;
+        } else if (randType === 2) {
+          let start = Math.floor(Math.random() * 3) + 1;
+          for (let i = 0; i < seqLength; i++) seq.push(start * Math.pow(2, i));
+          currentHintText = `Talet dubbleras (×2) för varje lampa`;
+        } else {
+          let start = Math.floor(Math.random() * 8) + 1;
+          let current = start;
+          seq.push(current);
+          for (let i = 1; i < seqLength; i++) {
+            current += (i + 1);
+            seq.push(current);
+          }
+          currentHintText = `Ökningen blir 1 större för varje steg (+2, +3, +4...)`;
+        }
+
+        pickMissingIndices(seqLength, missingCount);
+      }
+
+      currentSequence = seq;
+      updateSequenceBanner();
+      focusInput();
+    }
+
+    function pickMissingIndices(length, count) {
+      missingIndicesQueue = [];
+      if (count <= 1) {
+        let idx = Math.floor(Math.random() * (length - 2)) + 1;
+        missingIndicesQueue.push(idx);
+      } else {
+        let validPairs = [];
+        for (let i = 1; i <= length - 3; i++) {
+          for (let j = i + 2; j <= length - 2; j++) {
+            validPairs.push([i, j]);
+          }
+        }
+        if (validPairs.length > 0) {
+          const chosen = validPairs[Math.floor(Math.random() * validPairs.length)];
+          missingIndicesQueue = chosen;
+        } else {
+          missingIndicesQueue = [Math.floor(length / 2)];
+        }
+      }
+    }
+
+    function toggleHint() {
+      playSound('click');
+      isHintVisible = !isHintVisible;
+      const hintBox = document.getElementById('hintBox');
+      const hintToggleBtnText = document.getElementById('hintToggleBtnText');
+
+      if (isHintVisible) {
+        hintBox.innerText = "💡 Ledtråd: " + currentHintText;
+        hintBox.classList.remove('hidden');
+        hintToggleBtnText.innerText = "Dölj Ledtråd";
+      } else {
+        hintBox.classList.add('hidden');
+        hintToggleBtnText.innerText = "Visa Ledtråd";
+      }
+    }
+
+    function updateSequenceBanner() {
+      let html = '';
+      const activeMissingIndex = missingIndicesQueue.length > 0 ? missingIndicesQueue[0] : -1;
+
+      currentSequence.forEach((val, idx) => {
+        if (solvedIndices.has(idx)) {
+          html += `<span class="mx-0.5 text-emerald-400 font-bold">${val}</span>`;
+        } else if (idx === activeMissingIndex) {
+          html += `<span class="inline-block bg-amber-500/25 border-2 border-amber-400 px-2.5 py-0.2 rounded text-yellow-300 font-extrabold underline animate-pulse mx-0.5 shadow-lg">?</span>`;
+        } else if (missingIndicesQueue.includes(idx)) {
+          html += `<span class="inline-block bg-slate-800 border border-amber-500/40 px-2 py-0.2 rounded text-amber-500/60 font-bold mx-0.5">?</span>`;
+        } else {
+          html += `<span class="mx-0.5 text-white">${val}</span>`;
+        }
+
+        if (idx < currentSequence.length - 1) {
+          html += `<span class="text-amber-500/50 font-normal select-none">•</span>`;
+        }
+      });
+      sequenceTextBanner.innerHTML = html;
+    }
+
+    /* ================= 5. CANVAS RENDER LOOP (Low-Height Christmas Tree) ================= */
+    function renderLoop() {
+      if (!isGameActive) return;
+
+      tCtx.fillStyle = '#060a17';
+      tCtx.fillRect(0, 0, treeCanvas.width, treeCanvas.height);
+
+      // Stars
+      tCtx.fillStyle = 'rgba(255, 255, 255, 0.25)';
+      for (let i = 0; i < 20; i++) {
+        const sx = (i * 41) % treeCanvas.width;
+        const sy = (i * 17) % treeCanvas.height;
+        tCtx.fillRect(sx, sy, 2, 2);
+      }
+
+      // Snowy Ground
+      tCtx.fillStyle = '#ffffff';
+      tCtx.beginPath();
+      tCtx.ellipse(treeCanvas.width / 2, treeCanvas.height + 45, 320, 60, 0, 0, Math.PI * 2);
+      tCtx.fill();
+
+      // Tree Dimensions (Compact height)
+      const treeCenterX = treeCanvas.width / 2;
+      const treeTopY = 25;
+      const treeBottomY = treeCanvas.height - 25;
+
+      // Trunk
+      tCtx.fillStyle = '#3a2010';
+      tCtx.fillRect(treeCenterX - 14, treeBottomY - 10, 28, 30);
+
+      // Tree Tiers (3 Layers)
+      const tiers = [
+        { topY: treeTopY + 10, bottomY: treeTopY + 65, width: 110 },
+        { topY: treeTopY + 50, bottomY: treeTopY + 120, width: 175 },
+        { topY: treeTopY + 100, bottomY: treeBottomY, width: 245 }
+      ];
+
+      tiers.forEach((tier) => {
+        const grad = tCtx.createLinearGradient(0, tier.topY, 0, tier.bottomY);
+        grad.addColorStop(0, '#064e3b');
+        grad.addColorStop(1, '#022c22');
+
+        tCtx.fillStyle = grad;
+        tCtx.beginPath();
+        tCtx.moveTo(treeCenterX, tier.topY);
+        tCtx.lineTo(treeCenterX + tier.width / 2, tier.bottomY);
+        tCtx.lineTo(treeCenterX - tier.width / 2, tier.bottomY);
+        tCtx.closePath();
+        tCtx.fill();
+
+        // Snow layer
+        tCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+        tCtx.beginPath();
+        tCtx.moveTo(treeCenterX - tier.width / 2, tier.bottomY);
+        tCtx.quadraticCurveTo(treeCenterX, tier.bottomY + 6, treeCenterX + tier.width / 2, tier.bottomY);
+        tCtx.lineTo(treeCenterX + tier.width / 2 - 8, tier.bottomY - 5);
+        tCtx.quadraticCurveTo(treeCenterX, tier.bottomY + 1, treeCenterX - tier.width / 2 + 8, tier.bottomY - 5);
+        tCtx.fill();
+      });
+
+      // Baubles
+      const baubles = [
+        { x: treeCenterX - 45, y: treeTopY + 75, color: '#ef4444' },
+        { x: treeCenterX + 50, y: treeTopY + 90, color: '#3b82f6' },
+        { x: treeCenterX - 85, y: treeTopY + 140, color: '#f59e0b' },
+        { x: treeCenterX + 80, y: treeTopY + 150, color: '#ec4899' },
+      ];
+      baubles.forEach(b => {
+        tCtx.fillStyle = b.color;
+        tCtx.beginPath();
+        tCtx.arc(b.x, b.y, 5, 0, Math.PI * 2);
+        tCtx.fill();
+      });
+
+      // Golden Star
+      drawGoldenStar(treeCenterX, treeTopY, 14);
+
+      // Garland Light Positions
+      const bulbPositions = [];
+      const numBulbs = currentSequence.length;
+      const garlandTopY = treeTopY + 45;
+      const garlandBottomY = treeBottomY - 15;
+
+      for (let i = 0; i < numBulbs; i++) {
+        const t = i / (numBulbs - 1);
+        const y = garlandTopY + t * (garlandBottomY - garlandTopY);
+        const side = (i % 2 === 0) ? -1 : 1;
+        const widthOffset = 25 + t * 70;
+        const x = treeCenterX + side * widthOffset;
+        bulbPositions.push({ x: x, y: y });
+      }
+
+      // Draw Garland Wire
+      tCtx.strokeStyle = 'rgba(212, 175, 55, 0.6)';
+      tCtx.lineWidth = 1.5;
+      tCtx.beginPath();
+      tCtx.moveTo(bulbPositions[0].x, bulbPositions[0].y);
+      for (let i = 1; i < bulbPositions.length; i++) {
+        const p1 = bulbPositions[i - 1];
+        const p2 = bulbPositions[i];
+        const cx = (p1.x + p2.x) / 2;
+        const cy = Math.max(p1.y, p2.y) + 10;
+        tCtx.quadraticCurveTo(cx, cy, p2.x, p2.y);
+      }
+      tCtx.stroke();
+
+      const activeMissingIndex = missingIndicesQueue.length > 0 ? missingIndicesQueue[0] : -1;
+
+      // Draw Bulbs
+      bulbPositions.forEach((pos, idx) => {
+        const val = currentSequence[idx];
+        const isSolved = solvedIndices.has(idx);
+        const isCurrentlyActive = (idx === activeMissingIndex);
+        const isFutureMissing = missingIndicesQueue.includes(idx) && !isCurrentlyActive;
+
+        // Socket
+        tCtx.fillStyle = '#4b5563';
+        tCtx.fillRect(pos.x - 3, pos.y - 14, 6, 5);
+
+        if (isCurrentlyActive && !isTreeCompleted) {
+          const pulse = Math.sin(Date.now() * 0.008) * 3;
+          const bulbRadius = 13 + pulse * 0.5;
+
+          tCtx.shadowColor = '#f59e0b';
+          tCtx.shadowBlur = 14 + pulse * 2;
+
+          tCtx.fillStyle = '#d97706';
+          tCtx.beginPath();
+          tCtx.arc(pos.x, pos.y, bulbRadius, 0, Math.PI * 2);
+          tCtx.fill();
+
+          tCtx.fillStyle = '#fffbeb';
+          tCtx.beginPath();
+          tCtx.arc(pos.x, pos.y, bulbRadius * 0.7, 0, Math.PI * 2);
+          tCtx.fill();
+
+          tCtx.shadowBlur = 0;
+
+          tCtx.fillStyle = '#78350f';
+          tCtx.font = '900 15px Nunito, sans-serif';
+          tCtx.textAlign = 'center';
+          tCtx.textBaseline = 'middle';
+          tCtx.fillText('?', pos.x, pos.y + 1);
+
+        } else if (isFutureMissing && !isTreeCompleted) {
+          tCtx.fillStyle = 'rgba(55, 65, 81, 0.9)';
+          tCtx.beginPath();
+          tCtx.arc(pos.x, pos.y, 11, 0, Math.PI * 2);
+          tCtx.fill();
+          tCtx.lineWidth = 1.5;
+          tCtx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
+          tCtx.stroke();
+
+          tCtx.fillStyle = '#9ca3af';
+          tCtx.font = '700 12px Nunito, sans-serif';
+          tCtx.textAlign = 'center';
+          tCtx.textBaseline = 'middle';
+          tCtx.fillText('?', pos.x, pos.y + 1);
+
+        } else {
+          const isTreeFullLit = isTreeCompleted;
+          const glowColor = isTreeFullLit ? (idx % 2 === 0 ? '#f59e0b' : '#10b981') : (isSolved ? '#10b981' : '#f5c542');
+
+          tCtx.shadowColor = glowColor;
+          tCtx.shadowBlur = isTreeFullLit ? 16 : 10;
+
+          tCtx.fillStyle = glowColor;
+          tCtx.beginPath();
+          tCtx.arc(pos.x, pos.y, 13, 0, Math.PI * 2);
+          tCtx.fill();
+
+          tCtx.fillStyle = '#ffffff';
+          tCtx.beginPath();
+          tCtx.arc(pos.x - 2, pos.y - 2, 4, 0, Math.PI * 2);
+          tCtx.fill();
+
+          tCtx.shadowBlur = 0;
+
+          tCtx.fillStyle = '#0f172a';
+          tCtx.font = '900 13px Nunito, sans-serif';
+          tCtx.textAlign = 'center';
+          tCtx.textBaseline = 'middle';
+          tCtx.fillText(val, pos.x, pos.y + 1);
+        }
+      });
+
+      // Render Particle Explosions
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.opacity -= 0.025;
+        if (p.opacity <= 0) {
+          particles.splice(i, 1);
+        } else {
+          tCtx.globalAlpha = p.opacity;
+          tCtx.fillStyle = p.color;
+          tCtx.beginPath();
+          tCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+          tCtx.fill();
+          tCtx.globalAlpha = 1.0;
+        }
+      }
+
+      animationFrameId = requestAnimationFrame(renderLoop);
+    }
+
+    function drawGoldenStar(cx, cy, r) {
+      tCtx.shadowColor = '#f5c542';
+      tCtx.shadowBlur = 12;
+      tCtx.fillStyle = '#fbbf24';
+      tCtx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        tCtx.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * r + cx, -Math.sin((18 + i * 72) * Math.PI / 180) * r + cy);
+        tCtx.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * (r / 2) + cx, -Math.sin((54 + i * 72) * Math.PI / 180) * (r / 2) + cy);
+      }
+      tCtx.closePath();
+      tCtx.fill();
+      tCtx.shadowBlur = 0;
+    }
+
+    /* ================= 6. USER SUBMISSION ================= */
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      submitAnswer();
+    }
+
+    function submitAnswer() {
+      if (!isGameActive || isTreeCompleted || missingIndicesQueue.length === 0) return;
+
+      const inputVal = parseInt(answerInput.value.trim(), 10);
+      if (isNaN(inputVal)) return;
+
+      const activeMissingIndex = missingIndicesQueue[0];
+      const expectedAnswer = currentSequence[activeMissingIndex];
+
+      if (inputVal === expectedAnswer) {
+        playSound('lightUp');
+        score += 10;
+        solvedIndices.add(activeMissingIndex);
+        missingIndicesQueue.shift();
+        updateStatsUI();
+
+        const numBulbs = currentSequence.length;
+        const treeCenterX = treeCanvas.width / 2;
+        const garlandTopY = 25 + 45;
+        const garlandBottomY = treeCanvas.height - 25 - 15;
+        const t = activeMissingIndex / (numBulbs - 1);
+        const targetY = garlandTopY + t * (garlandBottomY - garlandTopY);
+        const side = (activeMissingIndex % 2 === 0) ? -1 : 1;
+        const targetX = treeCenterX + side * (25 + t * 70);
+
+        createSparkles(targetX, targetY, '#34d399');
+
+        answerInput.value = '';
+        updateSequenceBanner();
+
+        if (missingIndicesQueue.length === 0) {
+          triggerTreeLitVictory();
+        } else {
+          focusInput();
+        }
+
+      } else {
+        playSound('error');
+        answerInput.classList.add('shake-error');
+        setTimeout(() => {
+          answerInput.classList.remove('shake-error');
+        }, 350);
+        answerInput.value = '';
+        focusInput();
+      }
+    }
+
+    function createSparkles(x, y, color) {
+      for (let i = 0; i < 20; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3 + 1.5,
+          color: color,
+          opacity: 1.0
+        });
+      }
+    }
+
+    /* ================= 7. TREE COMPLETED & PROGRESSION ================= */
+    function triggerTreeLitVictory() {
+      isTreeCompleted = true;
+      treesLitCount++;
+      score += 30;
+      updateStatsUI();
+
+      playSound('treeLit');
+
+      for (let i = 0; i < 30; i++) {
+        const rx = treeCanvas.width / 2 + (Math.random() * 180 - 90);
+        const ry = 40 + Math.random() * 140;
+        createSparkles(rx, ry, i % 2 === 0 ? '#fbbf24' : '#34d399');
+      }
+
+      setTimeout(() => {
+        treeCompletedOverlay.classList.remove('hidden');
+        treeCompletedOverlay.classList.add('flex');
+      }, 600);
+    }
+
+    function nextTree() {
+      treeCompletedOverlay.classList.add('hidden');
+      treeCompletedOverlay.classList.remove('flex');
+
+      if (treesLitCount % 2 === 0) {
+        currentLevel++;
+        updateStatsUI();
+      }
+
+      generateNextSequence();
+    }
+
+    function showStartMenu() {
+      isGameActive = false;
+      isTreeCompleted = false;
+
+      gameplayScreen.classList.add('hidden');
+      gameplayScreen.classList.remove('flex');
+      gameOverScreen.classList.add('hidden');
+      treeCompletedOverlay.classList.add('hidden');
+
+      startMenuScreen.classList.remove('hidden');
+    }
+
+    document.addEventListener('click', (e) => {
+      if (isGameActive && !isTreeCompleted && e.target.tagName !== 'BUTTON') {
+        focusInput();
+      }
+    });
+
+  </script>
+</body>
+</html>

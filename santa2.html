@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Julens Snöbollskrig ❄️</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Google Fonts for cinematic Christmas headers -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: radial-gradient(circle at center, #0d061a 0%, #080414 60%, #04020a 100%);
+      color: #ffffff;
+      overflow-x: hidden;
+      user-select: none;
+    }
+
+    .font-serif-gold {
+      font-family: 'Cinzel', Georgia, serif;
+    }
+
+    /* Golden text styling */
+    .gold-title-text {
+      background: linear-gradient(180deg, #fff8c4 0%, #f5c542 45%, #d18d0d 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.8));
+    }
+
+    /* Outer Container Frame matching reference image */
+    .gold-frame {
+      background-color: #080b18;
+      border: 2px solid #d4af37;
+      box-shadow: 0 0 25px rgba(212, 175, 55, 0.35), inset 0 0 20px rgba(0, 0, 0, 0.9);
+      border-radius: 1.25rem;
+    }
+
+    /* Festive Gold/Amber Gradient Button */
+    .gold-btn {
+      background: linear-gradient(135deg, #d36b00 0%, #e68a00 50%, #c45b00 100%);
+      border: 1px solid #ffe082;
+      box-shadow: 0 4px 15px rgba(211, 107, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+      transition: all 0.15s ease-in-out;
+    }
+    .gold-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 6px 20px rgba(230, 138, 0, 0.75), inset 0 1px 0 rgba(255, 255, 255, 0.6);
+      filter: brightness(1.1);
+    }
+    .gold-btn:active {
+      transform: translateY(1px) scale(0.98);
+    }
+
+    /* Stat Pill Badges */
+    .stat-badge {
+      background: rgba(10, 15, 30, 0.85);
+      border: 1px solid rgba(212, 175, 55, 0.5);
+      box-shadow: 0 0 10px rgba(212, 175, 55, 0.15);
+    }
+
+    /* Shake animation for incorrect answer */
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      20%, 60% { transform: translateX(-8px); }
+      40%, 80% { transform: translateX(8px); }
+    }
+    .shake-error {
+      animation: shake 0.35s ease-in-out;
+      border-color: #ef4444 !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.6) !important;
+    }
+
+    /* Remove native HTML number arrows */
+    input[type=number]::-webkit-inner-spin-button, 
+    input[type=number]::-webkit-outer-spin-button { 
+      -webkit-appearance: none; 
+      margin: 0; 
+    }
+    input[type=number] {
+      -moz-appearance: textfield;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen flex flex-col items-center justify-between p-2 sm:p-4 relative">
+
+  <!-- Background Animated Snow Canvas -->
+  <canvas id="snowCanvas" class="fixed inset-0 pointer-events-none z-0"></canvas>
+
+  <!-- MAIN GAME CONTAINER FRAME (Compact & Integrated Header) -->
+  <main class="w-full max-w-4xl flex-1 flex flex-col justify-center items-center z-10 my-auto relative">
+    <div class="w-full gold-frame p-3 sm:p-5 min-h-[460px] flex flex-col justify-between items-center relative overflow-hidden">
+
+      <!-- INTEGRATED COMPACT HEADER (Inside Frame) -->
+      <header class="w-full flex flex-col sm:flex-row items-center justify-between gap-2 border-b border-amber-500/30 pb-3 mb-2">
+        <!-- Title -->
+        <div class="flex items-center gap-2">
+          <span class="text-xl sm:text-2xl">🎅</span>
+          <h1 class="text-xl sm:text-2xl md:text-3xl font-serif-gold font-bold tracking-wider gold-title-text uppercase">
+            Julens Snöbollskrig ❄️
+          </h1>
+        </div>
+
+        <!-- Stat Badges (Wave, Score, Lives) -->
+        <div class="flex items-center gap-2 sm:gap-3">
+          <div class="stat-badge rounded-full px-3 py-1 text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
+            <span>🌊</span>
+            <span>VÅG <span id="waveDisplay">1</span></span>
+          </div>
+          <div class="stat-badge rounded-full px-3 py-1 text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
+            <span>🏆</span>
+            <span id="scoreDisplay">0</span>
+          </div>
+          <div class="stat-badge rounded-full px-3 py-1 text-xs sm:text-sm font-bold text-rose-400 flex items-center gap-1.5">
+            <span id="livesDisplay">❤️❤️❤️</span>
+          </div>
+        </div>
+      </header>
+
+      <!-- ================= 1. START MENU SCREEN ================= -->
+      <div id="startMenuScreen" class="w-full my-auto flex flex-col items-center text-center space-y-4 py-4">
+        <div class="flex items-center justify-center gap-3 text-4xl sm:text-5xl">
+          <span>🎅</span>
+          <span>☃️</span>
+          <span>🎯</span>
+        </div>
+
+        <div class="max-w-md">
+          <h2 class="text-2xl sm:text-3xl font-serif-gold font-bold gold-title-text mb-2">
+            RÄDDA TOMTEVERKSTADEN!
+          </h2>
+          <p class="text-slate-300 text-xs sm:text-sm leading-relaxed">
+            Snögubbarna marscherar mot verkstaden från höger! Skriv in rätt svar på deras skyltar och tryck på <strong class="text-amber-300">Enter</strong> för att kasta snöboll!
+          </p>
+        </div>
+
+        <button onclick="startGame()" class="gold-btn px-8 py-3 rounded-full text-base sm:text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2 mt-2">
+          STARTA SPELET 🎁
+        </button>
+      </div>
+
+      <!-- ================= 2. ACTIVE GAMEPLAY SCREEN ================= -->
+      <div id="gameplayScreen" class="w-full hidden flex-col items-center flex-1 justify-between gap-3 relative">
+        
+        <!-- GAME ARENA CANVAS -->
+        <div class="relative w-full flex-1 min-h-[260px] sm:min-h-[300px] overflow-hidden rounded-xl border border-amber-500/30 bg-slate-950/80 shadow-inner">
+          <canvas id="gameCanvas" width="760" height="300" class="w-full h-full block"></canvas>
+          
+          <!-- WAVE CLEARED INTERMEDIATE OVERLAY -->
+          <div id="waveClearedOverlay" class="absolute inset-0 bg-black/85 backdrop-blur-sm z-20 hidden flex-col items-center justify-center text-center p-4">
+            <div class="text-4xl mb-2 animate-bounce">🌟</div>
+            <h3 id="waveClearedTitle" class="text-2xl sm:text-3xl font-serif-gold font-bold gold-title-text mb-1">VÅG 1 KLAR!</h3>
+            <p class="text-amber-200 text-sm font-semibold mb-3">Bra jobbat! Du besegrade alla snögubbar i denna våg!</p>
+            <p id="nextWavePreview" class="text-xs text-slate-300 mb-4">Nästa våg blir snabbare med klurigare matte...</p>
+            <button onclick="proceedToNextWave()" class="gold-btn px-6 py-2.5 rounded-full text-xs sm:text-sm font-bold text-white uppercase tracking-wide">
+              NÄSTA VÅG ➔
+            </button>
+          </div>
+        </div>
+
+        <!-- Clean Single Input Box below Canvas -->
+        <form onsubmit="handleFormSubmit(event)" class="w-full max-w-lg flex items-center gap-2">
+          <input type="number" id="answerInput" placeholder="Skriv svar och tryck Enter..." autocomplete="off" autofocus
+                 class="flex-1 bg-slate-950 border-2 border-amber-500/60 rounded-xl px-4 py-2.5 text-center text-xl sm:text-2xl font-bold text-amber-300 placeholder:text-slate-500 placeholder:text-sm sm:placeholder:text-base focus:outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-500/30 transition shadow-inner" />
+
+          <button type="submit" class="gold-btn px-6 py-3 rounded-xl text-xs sm:text-sm font-bold text-white uppercase shrink-0">
+            Kasta ❄️
+          </button>
+        </form>
+      </div>
+
+      <!-- ================= 3. GAME OVER SCREEN ================= -->
+      <div id="gameOverScreen" class="w-full my-auto hidden flex-col items-center text-center space-y-4 py-4">
+        <div class="text-5xl animate-bounce">☃️💥</div>
+        <div>
+          <h2 class="text-2xl sm:text-3xl font-serif-gold font-bold gold-title-text mb-1">Snögubbarna Nådde Fram!</h2>
+          <p class="text-slate-300 text-xs sm:text-sm">Tomteverkstaden behöver din hjälp igen!</p>
+        </div>
+
+        <div class="bg-slate-900/90 border border-amber-500/40 rounded-xl p-4 sm:p-5 w-full max-w-sm space-y-3 shadow-xl">
+          <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+            <span class="text-slate-400">Besegrade Snögubbar (Poäng):</span>
+            <span id="finalScoreDisplay" class="text-xl font-bold text-amber-400">0</span>
+          </div>
+          <div class="flex justify-between items-center text-sm border-b border-slate-800 pb-2">
+            <span class="text-slate-400">Nådd Våg:</span>
+            <span id="finalWaveDisplay" class="text-base font-bold text-amber-200">Våg 1</span>
+          </div>
+          <div class="flex justify-between items-center text-sm">
+            <span class="text-slate-400">Prestation:</span>
+            <span id="performanceBadge" class="text-sm font-bold text-amber-300">🌟 Snöbollsmästare</span>
+          </div>
+        </div>
+
+        <div class="flex gap-3 pt-2">
+          <button onclick="startGame()" class="gold-btn px-8 py-3 rounded-full text-xs sm:text-sm font-bold text-white uppercase tracking-wider">
+            SPELA IGEN 🎁
+          </button>
+          <button onclick="showStartMenu()" class="px-6 py-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-full text-xs sm:text-sm font-bold transition uppercase">
+            Huvudmeny 🏠
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </main>
+
+  <!-- ================= JAVASCRIPT LOGIC ================= -->
+  <script>
+    /* ================= 1. AUDIO SYNTHESIZER (Web Audio API) ================= */
+    let audioCtx = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        audioCtx = new AudioContext();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSound(type) {
+      try {
+        initAudio();
+        if (!audioCtx) return;
+
+        const now = audioCtx.currentTime;
+
+        if (type === 'throw') {
+          // Air whoosh noise
+          const bufferSize = audioCtx.sampleRate * 0.12;
+          const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+          const output = buffer.getChannelData(0);
+          for (let i = 0; i < bufferSize; i++) output[i] = Math.random() * 2 - 1;
+          const noise = audioCtx.createBufferSource();
+          noise.buffer = buffer;
+
+          const filter = audioCtx.createBiquadFilter();
+          filter.type = 'bandpass';
+          filter.frequency.setValueAtTime(500, now);
+          filter.frequency.exponentialRampToValueAtTime(1400, now + 0.1);
+
+          const gain = audioCtx.createGain();
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+
+          noise.connect(filter);
+          filter.connect(gain);
+          gain.connect(audioCtx.destination);
+          noise.start(now);
+
+        } else if (type === 'hit') {
+          // Snow impact pop sound
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(320, now);
+          osc.frequency.exponentialRampToValueAtTime(70, now + 0.1);
+          gain.gain.setValueAtTime(0.3, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.1);
+
+        } else if (type === 'error') {
+          // Error buzzer sound
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sawtooth';
+          osc.frequency.setValueAtTime(140, now);
+          osc.frequency.linearRampToValueAtTime(100, now + 0.18);
+          gain.gain.setValueAtTime(0.2, now);
+          gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now);
+          osc.stop(now + 0.18);
+
+        } else if (type === 'waveCleared') {
+          // Christmas Bell Arpeggio
+          const freqs = [523.25, 659.25, 783.99, 1046.50];
+          freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + i * 0.08);
+            gain.gain.setValueAtTime(0.15, now + i * 0.08);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.4);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.08);
+            osc.stop(now + i * 0.08 + 0.4);
+          });
+
+        } else if (type === 'lifeLost') {
+          // Sad tone
+          const freqs = [320, 240, 180];
+          freqs.forEach((f, i) => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(f, now + i * 0.1);
+            gain.gain.setValueAtTime(0.2, now + i * 0.1);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.1 + 0.2);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(now + i * 0.1);
+            osc.stop(now + i * 0.1 + 0.2);
+          });
+        }
+      } catch (e) {
+        console.log("Audio notice");
+      }
+    }
+
+    /* ================= 2. BACKGROUND SNOW ANIMATION ================= */
+    const snowCanvas = document.getElementById('snowCanvas');
+    const snowCtx = snowCanvas.getContext('2d');
+    let flakes = [];
+
+    function resizeSnowCanvas() {
+      snowCanvas.width = window.innerWidth;
+      snowCanvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resizeSnowCanvas);
+    resizeSnowCanvas();
+
+    for (let i = 0; i < 75; i++) {
+      flakes.push({
+        x: Math.random() * snowCanvas.width,
+        y: Math.random() * snowCanvas.height,
+        r: Math.random() * 3 + 1,
+        speedY: Math.random() * 0.8 + 0.3,
+        opacity: Math.random() * 0.7 + 0.3
+      });
+    }
+
+    function renderSnowBg() {
+      snowCtx.clearRect(0, 0, snowCanvas.width, snowCanvas.height);
+      snowCtx.fillStyle = 'white';
+      flakes.forEach(f => {
+        snowCtx.beginPath();
+        snowCtx.globalAlpha = f.opacity;
+        snowCtx.arc(f.x, f.y, f.r, 0, Math.PI * 2);
+        snowCtx.fill();
+
+        f.y += f.speedY;
+        f.x += Math.sin(f.y * 0.01) * 0.3;
+
+        if (f.y > snowCanvas.height) {
+          f.y = -5;
+          f.x = Math.random() * snowCanvas.width;
+        }
+      });
+      requestAnimationFrame(renderSnowBg);
+    }
+    renderSnowBg();
+
+    /* ================= 3. GAME STATE & ENGINE ================= */
+    let score = 0;
+    let lives = 3;
+    let currentWave = 1;
+    let isGameRunning = false;
+    let isWaveTransition = false;
+
+    let snowmenToSpawnInWave = 0;
+    let spawnTimer = 0;
+
+    let snowmen = [];
+    let snowballs = [];
+    let particles = [];
+    let animationFrameId = null;
+
+    // DOM Elements
+    const scoreDisplay = document.getElementById('scoreDisplay');
+    const livesDisplay = document.getElementById('livesDisplay');
+    const waveDisplay = document.getElementById('waveDisplay');
+    const answerInput = document.getElementById('answerInput');
+
+    const startMenuScreen = document.getElementById('startMenuScreen');
+    const gameplayScreen = document.getElementById('gameplayScreen');
+    const gameOverScreen = document.getElementById('gameOverScreen');
+    const waveClearedOverlay = document.getElementById('waveClearedOverlay');
+
+    const gameCanvas = document.getElementById('gameCanvas');
+    const gCtx = gameCanvas.getContext('2d');
+
+    function startGame() {
+      initAudio();
+      score = 0;
+      lives = 3;
+      currentWave = 1;
+      isGameRunning = true;
+      isWaveTransition = false;
+
+      snowmen = [];
+      snowballs = [];
+      particles = [];
+
+      updateStatsUI();
+
+      startMenuScreen.classList.add('hidden');
+      gameOverScreen.classList.add('hidden');
+      waveClearedOverlay.classList.add('hidden');
+      waveClearedOverlay.classList.remove('flex');
+      
+      gameplayScreen.classList.remove('hidden');
+      gameplayScreen.classList.add('flex');
+
+      startWave(1);
+
+      if (animationFrameId) cancelAnimationFrame(animationFrameId);
+      gameLoop();
+    }
+
+    function startWave(waveNum) {
+      currentWave = waveNum;
+      isWaveTransition = false;
+      snowmenToSpawnInWave = 4 + waveNum * 2; // Wave 1 = 6, Wave 2 = 8, etc.
+      spawnTimer = 0;
+      updateStatsUI();
+
+      waveClearedOverlay.classList.add('hidden');
+      waveClearedOverlay.classList.remove('flex');
+
+      focusInput();
+    }
+
+    function updateStatsUI() {
+      scoreDisplay.innerText = score;
+      waveDisplay.innerText = currentWave;
+      
+      let heartsStr = '';
+      for (let i = 0; i < lives; i++) heartsStr += '❤️';
+      livesDisplay.innerText = heartsStr || '💔';
+    }
+
+    function focusInput() {
+      setTimeout(() => {
+        answerInput.focus();
+      }, 50);
+    }
+
+    /* ================= 4. PROGRESSIVE MATH PROBLEM GENERATOR ================= */
+    function generateMathProblem(wave) {
+      let num1, num2, op, answer, exprStr;
+
+      if (wave === 1) {
+        // Wave 1: Simple Addition & Subtraction (1 to 12)
+        op = Math.random() > 0.5 ? '+' : '−';
+        if (op === '+') {
+          num1 = Math.floor(Math.random() * 7) + 1;
+          num2 = Math.floor(Math.random() * 6) + 1;
+          answer = num1 + num2;
+        } else {
+          num1 = Math.floor(Math.random() * 10) + 4;
+          num2 = Math.floor(Math.random() * (num1 - 1)) + 1;
+          answer = num1 - num2;
+        }
+      } else if (wave === 2) {
+        // Wave 2: Addition & Subtraction up to 30
+        op = Math.random() > 0.5 ? '+' : '−';
+        if (op === '+') {
+          num1 = Math.floor(Math.random() * 15) + 5;
+          num2 = Math.floor(Math.random() * 14) + 2;
+          answer = num1 + num2;
+        } else {
+          num1 = Math.floor(Math.random() * 25) + 5;
+          num2 = Math.floor(Math.random() * (num1 - 2)) + 1;
+          answer = num1 - num2;
+        }
+      } else if (wave === 3) {
+        // Wave 3: Introduces Multiplication (tables 2-6)
+        const ops = ['+', '−', '×'];
+        op = ops[Math.floor(Math.random() * ops.length)];
+        if (op === '+') {
+          num1 = Math.floor(Math.random() * 20) + 5;
+          num2 = Math.floor(Math.random() * 20) + 5;
+          answer = num1 + num2;
+        } else if (op === '−') {
+          num1 = Math.floor(Math.random() * 35) + 10;
+          num2 = Math.floor(Math.random() * (num1 - 5)) + 2;
+          answer = num1 - num2;
+        } else {
+          num1 = Math.floor(Math.random() * 6) + 2;
+          num2 = Math.floor(Math.random() * 6) + 2;
+          answer = num1 * num2;
+        }
+      } else {
+        // Wave 4+: Mixed (+, −, ×, ÷) with larger numbers
+        const ops = ['+', '−', '×', '÷'];
+        op = ops[Math.floor(Math.random() * ops.length)];
+        if (op === '+') {
+          num1 = Math.floor(Math.random() * 45) + 10;
+          num2 = Math.floor(Math.random() * 45) + 10;
+          answer = num1 + num2;
+        } else if (op === '−') {
+          num1 = Math.floor(Math.random() * 60) + 15;
+          num2 = Math.floor(Math.random() * (num1 - 10)) + 5;
+          answer = num1 - num2;
+        } else if (op === '×') {
+          num1 = Math.floor(Math.random() * 9) + 2;
+          num2 = Math.floor(Math.random() * 8) + 2;
+          answer = num1 * num2;
+        } else { // Division with exact integer result
+          answer = Math.floor(Math.random() * 9) + 2;
+          num2 = Math.floor(Math.random() * 7) + 2;
+          num1 = answer * num2;
+        }
+      }
+
+      exprStr = `${num1} ${op} ${num2}`;
+      return { expr: exprStr, answer: answer };
+    }
+
+    /* ================= 5. SNOWMAN SPAWNER ================= */
+    function spawnSnowman() {
+      if (snowmenToSpawnInWave <= 0) return;
+
+      const prob = generateMathProblem(currentWave);
+      
+      // Speed scales up with wave + individual random variation (0.8x to 1.3x)
+      let baseSpeed = 0.38 + (currentWave * 0.07);
+      let speedFactor = 0.8 + Math.random() * 0.5; // Dynamic variation per snowman
+      let snowmanSpeed = baseSpeed * speedFactor;
+
+      // Y position between top & bottom lanes
+      const minY = 50;
+      const maxY = gameCanvas.height - 70;
+      const yPos = Math.floor(Math.random() * (maxY - minY)) + minY;
+
+      snowmen.push({
+        id: Math.random().toString(36).substr(2, 9),
+        x: gameCanvas.width + 40, // Spawn offscreen right
+        y: yPos,
+        speed: snowmanSpeed,
+        expr: prob.expr,
+        answer: prob.answer,
+        hit: false
+      });
+
+      snowmenToSpawnInWave--;
+    }
+
+    /* ================= 6. MAIN GAME LOOP ================= */
+    function gameLoop() {
+      if (!isGameRunning) return;
+
+      if (!isWaveTransition) {
+        // Spawning timer logic
+        spawnTimer++;
+        const spawnInterval = Math.max(80, 190 - (currentWave * 15));
+        if (spawnTimer > spawnInterval && snowmenToSpawnInWave > 0) {
+          spawnSnowman();
+          spawnTimer = 0;
+        }
+
+        // Update Snowmen (Marching from Right to Left)
+        for (let i = snowmen.length - 1; i >= 0; i--) {
+          const sm = snowmen[i];
+          if (!sm.hit) {
+            sm.x -= sm.speed;
+
+            // Reach Santa's Workshop on Left (x <= 90)
+            if (sm.x <= 90) {
+              sm.hit = true;
+              createExplosion(sm.x, sm.y, '#ef4444');
+              playSound('lifeLost');
+
+              lives--;
+              updateStatsUI();
+
+              if (lives <= 0) {
+                endGame();
+                return;
+              }
+            }
+          }
+        }
+
+        // Remove hit snowmen
+        snowmen = snowmen.filter(sm => !sm.hit || sm.x < 90);
+
+        // Check for wave clear condition
+        if (snowmenToSpawnInWave === 0 && snowmen.length === 0) {
+          triggerWaveCleared();
+        }
+
+        // Update Snowball trajectory (Santa on Left throwing to Snowman on Right)
+        for (let i = snowballs.length - 1; i >= 0; i--) {
+          const sb = snowballs[i];
+          sb.progress += sb.speed;
+
+          // Parabolic curve (higher arc for miss throws)
+          sb.x = sb.startX + (sb.targetX - sb.startX) * sb.progress;
+          const directY = sb.startY + (sb.targetY - sb.startY) * sb.progress;
+          const arc = Math.sin(sb.progress * Math.PI) * (sb.isMiss ? 65 : 45);
+          sb.y = directY - arc;
+
+          if (sb.progress >= 1) {
+            if (sb.isMiss) {
+              // Miss puff effect over snowman's head in background
+              createExplosion(sb.targetX, sb.targetY, 'rgba(220, 240, 255, 0.8)');
+              playSound('hit');
+            } else {
+              // Direct hit on snowman
+              createExplosion(sb.targetX, sb.targetY, '#ffffff');
+              playSound('hit');
+
+              const targetSm = snowmen.find(sm => sm.id === sb.targetId);
+              if (targetSm && !targetSm.hit) {
+                targetSm.hit = true;
+                score += 1; // Exactly 1 point per snowman
+                updateStatsUI();
+              }
+            }
+
+            snowballs.splice(i, 1);
+          }
+        }
+
+        // Update Explosion Particles
+        for (let i = particles.length - 1; i >= 0; i--) {
+          const p = particles[i];
+          p.x += p.vx;
+          p.y += p.vy;
+          p.opacity -= 0.03;
+          if (p.opacity <= 0) particles.splice(i, 1);
+        }
+      }
+
+      renderScene();
+      animationFrameId = requestAnimationFrame(gameLoop);
+    }
+
+    function renderScene() {
+      // Clear Canvas Background
+      gCtx.fillStyle = '#080d1e';
+      gCtx.fillRect(0, 0, gameCanvas.width, gameCanvas.height);
+
+      // Faint Stars
+      gCtx.fillStyle = 'rgba(255,255,255,0.2)';
+      for (let i = 0; i < 25; i++) {
+        const sx = (i * 37) % gameCanvas.width;
+        const sy = (i * 19) % gameCanvas.height;
+        gCtx.fillRect(sx, sy, 2, 2);
+      }
+
+      // Santa's Workshop on the LEFT side (x: 0 to 80)
+      const workshopWidth = 75;
+      gCtx.fillStyle = '#1c100a';
+      gCtx.fillRect(0, 0, workshopWidth, gameCanvas.height);
+
+      // Snow drift border on Workshop
+      gCtx.fillStyle = '#ffffff';
+      gCtx.beginPath();
+      gCtx.moveTo(workshopWidth, 0);
+      for (let y = 0; y <= gameCanvas.height; y += 25) {
+        gCtx.quadraticCurveTo(workshopWidth + 8, y + 12.5, workshopWidth, y + 25);
+      }
+      gCtx.lineTo(0, gameCanvas.height);
+      gCtx.lineTo(0, 0);
+      gCtx.fill();
+
+      // Santa Emoji standing on left barrier
+      const santaX = 35;
+      const santaY = gameCanvas.height / 2;
+      gCtx.font = '32px serif';
+      gCtx.textAlign = 'center';
+      gCtx.textBaseline = 'middle';
+      gCtx.fillText('🎅', santaX, santaY);
+
+      // Draw Marching Snowmen (Right to Left)
+      snowmen.forEach(sm => {
+        if (sm.hit) return;
+
+        const x = sm.x;
+        const y = sm.y;
+
+        // Snowman Body Circles
+        gCtx.fillStyle = '#ffffff';
+        // Bottom
+        gCtx.beginPath();
+        gCtx.arc(x, y + 14, 16, 0, Math.PI * 2);
+        gCtx.fill();
+        // Middle
+        gCtx.beginPath();
+        gCtx.arc(x, y - 1, 12, 0, Math.PI * 2);
+        gCtx.fill();
+        // Head
+        gCtx.beginPath();
+        gCtx.arc(x, y - 15, 9, 0, Math.PI * 2);
+        gCtx.fill();
+
+        // Face & Carrot Nose
+        gCtx.fillStyle = '#000000';
+        gCtx.fillRect(x - 4, y - 17, 2, 2);
+        gCtx.fillRect(x + 1, y - 17, 2, 2);
+        gCtx.fillStyle = '#ff6600'; // Orange Nose pointing left
+        gCtx.beginPath();
+        gCtx.moveTo(x - 2, y - 15);
+        gCtx.lineTo(x - 8, y - 13);
+        gCtx.lineTo(x - 2, y - 11);
+        gCtx.fill();
+
+        // Top Hat
+        gCtx.fillStyle = '#1c1815';
+        gCtx.fillRect(x - 10, y - 24, 20, 3);
+        gCtx.fillRect(x - 6, y - 33, 12, 9);
+        gCtx.fillStyle = '#dc2626'; // Red band
+        gCtx.fillRect(x - 6, y - 26, 12, 2);
+
+        // Wooden Math Sign on Chest - High Contrast & Enlarged
+        // Outer Gold & Wood Border
+        gCtx.fillStyle = '#d4af37'; 
+        gCtx.fillRect(x - 37, y - 2, 74, 30);
+        gCtx.fillStyle = '#3a1f04';
+        gCtx.fillRect(x - 35, y, 70, 26);
+        
+        // Inner High-Contrast Cream Board
+        gCtx.fillStyle = '#fffdf0'; 
+        gCtx.fillRect(x - 33, y + 2, 66, 22);
+
+        // Math Expression Text - Large, Bold, Sharp Dark Text
+        gCtx.fillStyle = '#050814';
+        gCtx.font = '900 16px Nunito, sans-serif';
+        gCtx.textAlign = 'center';
+        gCtx.textBaseline = 'middle';
+        gCtx.fillText(sm.expr, x, y + 13);
+      });
+
+      // Draw Flying Snowballs
+      snowballs.forEach(sb => {
+        gCtx.fillStyle = '#ffffff';
+        gCtx.shadowColor = '#fbbf24';
+        gCtx.shadowBlur = 6;
+        gCtx.beginPath();
+        gCtx.arc(sb.x, sb.y, 6, 0, Math.PI * 2);
+        gCtx.fill();
+        gCtx.shadowBlur = 0;
+      });
+
+      // Draw Particle Explosions
+      particles.forEach(p => {
+        gCtx.globalAlpha = p.opacity;
+        gCtx.fillStyle = p.color;
+        gCtx.beginPath();
+        gCtx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+        gCtx.fill();
+        gCtx.globalAlpha = 1.0;
+      });
+    }
+
+    /* ================= 7. INPUT & SNOWBALL FIRING ================= */
+    function handleFormSubmit(e) {
+      e.preventDefault();
+      submitAnswer();
+    }
+
+    function submitAnswer() {
+      if (!isGameRunning || isWaveTransition) return;
+
+      const inputVal = parseInt(answerInput.value.trim(), 10);
+      if (isNaN(inputVal)) return;
+
+      // Find the closest snowman to the left (smallest X) that matches the answer
+      let targetSnowman = null;
+      let minX = 9999;
+
+      snowmen.forEach(sm => {
+        if (!sm.hit && sm.answer === inputVal && sm.x < minX) {
+          minX = sm.x;
+          targetSnowman = sm;
+        }
+      });
+
+      if (targetSnowman) {
+        playSound('throw');
+
+        snowballs.push({
+          startX: 40, // Santa's position
+          startY: gameCanvas.height / 2,
+          targetX: targetSnowman.x,
+          targetY: targetSnowman.y,
+          targetId: targetSnowman.id,
+          isMiss: false,
+          x: 40,
+          y: gameCanvas.height / 2,
+          progress: 0,
+          speed: 0.09
+        });
+
+        answerInput.value = '';
+        answerInput.classList.remove('shake-error');
+      } else {
+        // Wrong answer -> Throw a snowball anyway that flies over the head & misses!
+        playSound('throw');
+        playSound('error');
+
+        // Target position for miss: fly high over the front-most snowman's head
+        let frontSnowman = null;
+        let lowestX = 9999;
+        snowmen.forEach(sm => {
+          if (!sm.hit && sm.x < lowestX) {
+            lowestX = sm.x;
+            frontSnowman = sm;
+          }
+        });
+
+        let targetX = frontSnowman ? frontSnowman.x + (Math.random() * 30 - 15) : 500;
+        let targetY = frontSnowman ? frontSnowman.y - 65 : 50; // High arc miss
+
+        snowballs.push({
+          startX: 40,
+          startY: gameCanvas.height / 2,
+          targetX: targetX,
+          targetY: Math.max(15, targetY),
+          targetId: null,
+          isMiss: true,
+          x: 40,
+          y: gameCanvas.height / 2,
+          progress: 0,
+          speed: 0.085
+        });
+
+        // Visual error feedback (red shake on input box)
+        answerInput.classList.add('shake-error');
+        setTimeout(() => {
+          answerInput.classList.remove('shake-error');
+        }, 350);
+        answerInput.value = '';
+      }
+
+      focusInput();
+    }
+
+    function createExplosion(x, y, color) {
+      for (let i = 0; i < 16; i++) {
+        const angle = Math.random() * Math.PI * 2;
+        const speed = Math.random() * 3 + 1;
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: Math.random() * 3.5 + 2,
+          color: color,
+          opacity: 1.0
+        });
+      }
+    }
+
+    /* ================= 8. WAVE TRANSITION & ENDGAME ================= */
+    function triggerWaveCleared() {
+      isWaveTransition = true;
+      updateStatsUI();
+
+      playSound('waveCleared');
+
+      document.getElementById('waveClearedTitle').innerText = `VÅG ${currentWave} KLAR! 🌟`;
+      document.getElementById('nextWavePreview').innerText = `Klar för Våg ${currentWave + 1}? Snögubbarna blir klurigare!`;
+
+      waveClearedOverlay.classList.remove('hidden');
+      waveClearedOverlay.classList.add('flex');
+    }
+
+    function proceedToNextWave() {
+      startWave(currentWave + 1);
+    }
+
+    function endGame() {
+      isGameRunning = false;
+      playSound('lifeLost');
+
+      gameplayScreen.classList.add('hidden');
+      gameplayScreen.classList.remove('flex');
+      waveClearedOverlay.classList.add('hidden');
+
+      gameOverScreen.classList.remove('hidden');
+      gameOverScreen.classList.add('flex');
+
+      document.getElementById('finalScoreDisplay').innerText = score;
+      document.getElementById('finalWaveDisplay').innerText = `Våg ${currentWave}`;
+
+      const badgeElem = document.getElementById('performanceBadge');
+      if (score >= 40) {
+        badgeElem.innerText = '🥇 Legendarisk Övertomte';
+      } else if (score >= 20) {
+        badgeElem.innerText = '🌟 Master-Snöbollsskytt';
+      } else {
+        badgeElem.innerText = '🎁 Tapper Tomtehjälpare';
+      }
+    }
+
+    function showStartMenu() {
+      isGameRunning = false;
+      isWaveTransition = false;
+
+      gameplayScreen.classList.add('hidden');
+      gameplayScreen.classList.remove('flex');
+      gameOverScreen.classList.add('hidden');
+      waveClearedOverlay.classList.add('hidden');
+
+      startMenuScreen.classList.remove('hidden');
+    }
+
+    // Always keep focus on input field during gameplay
+    document.addEventListener('click', (e) => {
+      if (isGameRunning && !isWaveTransition && e.target.tagName !== 'BUTTON') {
+        focusInput();
+      }
+    });
+
+  </script>
+</body>
+</html>

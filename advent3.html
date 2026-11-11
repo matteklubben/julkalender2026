@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>4:e Advent - Mixad Utmaning</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Ikoner -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Great+Vibes&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background: radial-gradient(circle at center, #3d0a14 0%, #1e0408 55%, #0a0103 100%);
+            height: 100vh;
+            width: 100vw;
+            margin: 0;
+            padding: 0;
+            color: #f8fafc;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        .font-christmas {
+            font-family: 'Great Vibes', cursive;
+        }
+
+        .font-header {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Input font-size skyddar mot automatisk inzoomning på iOS/Android */
+        input[type="number"] {
+            font-size: 18px !important;
+        }
+
+        /* Stjärnram - Inaktiva vs Aktiva stjärnor */
+        .minigame-star-inactive {
+            color: rgba(255, 255, 255, 0.2);
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
+            transition: all 0.3s ease;
+        }
+
+        .minigame-star-active {
+            color: #ffd700;
+            filter: drop-shadow(0 0 10px #ffd700) drop-shadow(0 0 20px #ffaa00);
+            animation: starPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(0.4) rotate(-30deg); opacity: 0; }
+            50% { transform: scale(1.5) rotate(15deg); }
+            100% { transform: scale(1) rotate(0deg); opacity: 1; }
+        }
+
+        /* Skaka kort vid felaktigt svar */
+        .shake-card {
+            animation: cardShake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+        }
+
+        @keyframes cardShake {
+            10%, 90% { transform: translate3d(-3px, 0, 0); }
+            20%, 80% { transform: translate3d(5px, 0, 0); }
+            30%, 50%, 70% { transform: translate3d(-7px, 0, 0); }
+            40%, 60% { transform: translate3d(7px, 0, 0); }
+        }
+
+        /* Mörk glaskänsla på kortet */
+        .game-panel {
+            background: rgba(10, 5, 8, 0.85);
+            border: 1px solid rgba(255, 215, 0, 0.35);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.8), inset 0 0 15px rgba(255, 215, 0, 0.1);
+        }
+    </style>
+</head>
+<body class="p-2 sm:p-4">
+
+    <!-- HUVUDBEHÅLLARE MED STJÄRNRAM -->
+    <div class="relative w-full max-w-lg game-panel rounded-2xl p-5 text-center select-none overflow-visible">
+        
+        <!-- STJÄRNOR I RAMEN (20 STYCKEN) -->
+        <div id="top-stars" class="absolute -top-3.5 left-3 right-3 flex justify-evenly items-center z-20 pointer-events-none"></div>
+        <div id="left-stars" class="absolute -left-3.5 top-6 bottom-6 flex flex-col justify-evenly items-center z-20 pointer-events-none"></div>
+        <div id="right-stars" class="absolute -right-3.5 top-6 bottom-6 flex flex-col justify-evenly items-center z-20 pointer-events-none"></div>
+        <div id="bottom-stars" class="absolute -bottom-3.5 left-3 right-3 flex justify-evenly items-center z-20 pointer-events-none"></div>
+
+        <!-- SPELOMRÅDE -->
+        <div id="minigame-play-area" class="space-y-3.5 py-1">
+            <div>
+                <h2 id="minigame-title" class="text-base sm:text-lg font-header font-bold text-amber-300 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-calculator text-amber-400"></i>
+                    Mixad Utmaning (1–10)
+                </h2>
+                <p id="minigame-desc" class="text-[11px] sm:text-xs text-amber-100/70 mt-1">
+                    Klara 20 rätta svar för att tända alla stjärnor och det 4:e adventsljuset! ⭐
+                </p>
+            </div>
+
+            <!-- PROGRESS BAR -->
+            <div class="w-full bg-slate-950 border border-amber-500/30 h-3 rounded-full overflow-hidden shadow-inner">
+                <div id="minigame-progress-bar" class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-300 h-full w-0 transition-all duration-300 rounded-full"></div>
+            </div>
+
+            <!-- FRÅGEKORT -->
+            <div id="minigame-question-card" class="bg-gradient-to-br from-amber-950/80 via-slate-900 to-amber-900/60 border border-amber-500/40 rounded-xl p-4 shadow-lg transform transition-transform duration-200 my-2">
+                <span class="text-[10px] uppercase font-header tracking-widest text-amber-300/80 font-bold" id="minigame-mode-badge">Räkna ut:</span>
+                <div id="minigame-problem-text" class="text-3xl sm:text-4xl font-extrabold font-header text-amber-200 my-1 tracking-wider drop-shadow-md">
+                    7 × 8 = ?
+                </div>
+            </div>
+
+            <!-- FORMULÄR FÖR SVAR -->
+            <form id="minigame-form" onsubmit="handleMinigameSubmit(event)" class="flex flex-col sm:flex-row gap-2.5 justify-center items-center max-w-xs mx-auto">
+                <input type="number" id="minigame-input" placeholder="Svar?" autocomplete="off" required
+                       class="w-full sm:w-1/2 text-center text-lg font-bold p-2 bg-slate-950 border border-amber-500/40 focus:border-amber-400 rounded-xl text-amber-100 shadow-inner focus:outline-none">
+                <button type="submit" 
+                        class="w-full sm:w-auto px-5 py-2.5 bg-gradient-to-r from-amber-600 to-yellow-600 hover:from-amber-500 hover:to-yellow-500 active:scale-95 text-slate-950 text-xs sm:text-sm font-bold rounded-xl shadow-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer">
+                    <span>Svara</span>
+                    <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+            <!-- FEEDBACK MEDDELANDE -->
+            <div id="minigame-feedback" class="h-5 text-xs font-bold flex items-center justify-center transition-all opacity-0">
+                <span id="minigame-feedback-text"></span>
+            </div>
+        </div>
+
+        <!-- VINSTSKÄRM -->
+        <div id="minigame-win-screen" class="hidden py-6 space-y-3">
+            <div class="text-5xl animate-bounce">🏆</div>
+            <h3 class="text-xl font-header font-bold text-amber-300">GRATTIS!</h3>
+            <p id="minigame-win-desc" class="text-xs text-amber-100/90 max-w-xs mx-auto leading-relaxed">
+                Du klarade utmaningen och tände alla 20 stjärnor! Det fjärde adventsljuset och dagens stjärna är nu tända! 🎉✨
+            </p>
+        </div>
+
+    </div>
+
+    <!-- SPEL-LOGIK -->
+    <script>
+        let score = 0;
+        let mistakes = 0;
+        const maxScore = 20;
+        let num1 = 0;
+        let num2 = 0;
+        let correctAns = 0;
+        const starElements = [];
+
+        const positiveFeedbacks = [
+            "Snyggt jobbat! 🌟",
+            "Helt rätt! 🚀",
+            "Superbra! 👏",
+            "Klockrent! ✨",
+            "Grymt! 💪",
+            "Du är en stjärna! ⭐",
+            "Perfekt! 🎯"
+        ];
+
+        // Bygg stjärnramen runt kortet
+        function initStarFrame() {
+            const containers = {
+                top: document.getElementById('top-stars'),
+                right: document.getElementById('right-stars'),
+                bottom: document.getElementById('bottom-stars'),
+                left: document.getElementById('left-stars')
+            };
+
+            Object.values(containers).forEach(el => el.innerHTML = '');
+            starElements.length = 0;
+
+            const distribution = [
+                { container: containers.top, count: 6 },
+                { container: containers.right, count: 4 },
+                { container: containers.bottom, count: 6, reverse: true },
+                { container: containers.left, count: 4, reverse: true }
+            ];
+
+            let index = 0;
+            distribution.forEach(group => {
+                const tempStars = [];
+                for (let i = 0; i < group.count; i++) {
+                    const star = document.createElement('i');
+                    star.className = 'fa-solid fa-star text-xs sm:text-sm minigame-star-inactive transform';
+                    star.dataset.index = index;
+                    tempStars.push(star);
+                    index++;
+                }
+                if (group.reverse) {
+                    tempStars.reverse();
+                }
+                tempStars.forEach(star => {
+                    group.container.appendChild(star);
+                    starElements.push(star);
+                });
+            });
+
+            starElements.sort((a, b) => parseInt(a.dataset.index) - parseInt(b.dataset.index));
+        }
+
+        // Uppdatera visningen av stjärnor och progress bar
+        function updateDisplay() {
+            for (let i = 0; i < maxScore; i++) {
+                if (starElements[i]) {
+                    if (i < score) {
+                        starElements[i].classList.remove('minigame-star-inactive');
+                        starElements[i].classList.add('minigame-star-active');
+                    } else {
+                        starElements[i].classList.remove('minigame-star-active');
+                        starElements[i].classList.add('minigame-star-inactive');
+                    }
+                }
+            }
+
+            const progressBar = document.getElementById('minigame-progress-bar');
+            if (progressBar) {
+                const percentage = (score / maxScore) * 100;
+                progressBar.style.width = `${percentage}%`;
+            }
+        }
+
+        // Generera slumpmässig fråga (mix av multiplikation och division 1-10)
+        function generateProblem() {
+            const isMultiplication = Math.random() > 0.5;
+
+            if (isMultiplication) {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                correctAns = num1 * num2;
+                document.getElementById('minigame-problem-text').innerText = `${num1} × ${num2} = ?`;
+                document.getElementById('minigame-mode-badge').innerText = 'Multiplikation:';
+            } else {
+                num2 = Math.floor(Math.random() * 10) + 1; // Divisor
+                correctAns = Math.floor(Math.random() * 10) + 1; // Kvot
+                num1 = num2 * correctAns; // Dividend
+                document.getElementById('minigame-problem-text').innerText = `${num1} ÷ ${num2} = ?`;
+                document.getElementById('minigame-mode-badge').innerText = 'Division:';
+            }
+
+            const input = document.getElementById('minigame-input');
+            if (input) {
+                input.value = '';
+                setTimeout(() => input.focus(), 80);
+            }
+        }
+
+        // Visa tillfällig feedback
+        function showFeedback(text, isSuccess) {
+            const feedbackText = document.getElementById('minigame-feedback-text');
+            const feedback = document.getElementById('minigame-feedback');
+            if (!feedback || !feedbackText) return;
+
+            feedbackText.innerText = text;
+            feedback.className = `h-5 text-xs font-bold flex items-center justify-center transition-all duration-200 opacity-100 ${
+                isSuccess ? 'text-emerald-400' : 'text-red-400'
+            }`;
+
+            setTimeout(() => {
+                feedback.classList.add('opacity-0');
+            }, 1600);
+        }
+
+        // Visa vinstskärm och skicka postMessage till parent
+        function triggerWin() {
+            document.getElementById('minigame-play-area').classList.add('hidden');
+            document.getElementById('minigame-win-screen').classList.remove('hidden');
+
+            const isPerfect = (mistakes === 0);
+
+            // Skicka resultat till index.html för Lucka 20 & Ljus 4
+            window.parent.postMessage({
+                type: 'MINIGAME_WIN',
+                door: 20,
+                perfectGame: isPerfect,
+                candleToLight: 4
+            }, '*');
+        }
+
+        // Hantera formulärsvar
+        function handleMinigameSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('minigame-input');
+            const userAns = parseInt(input.value.trim(), 10);
+            if (isNaN(userAns)) return;
+
+            const card = document.getElementById('minigame-question-card');
+
+            if (userAns === correctAns) {
+                score++;
+                updateDisplay();
+
+                const randomFb = positiveFeedbacks[Math.floor(Math.random() * positiveFeedbacks.length)];
+                showFeedback(randomFb, true);
+
+                if (card) {
+                    card.classList.add('scale-105');
+                    setTimeout(() => card.classList.remove('scale-105'), 180);
+                }
+
+                if (score >= maxScore) {
+                    triggerWin();
+                } else {
+                    generateProblem();
+                }
+            } else {
+                mistakes++;
+                showFeedback("Inte riktigt rätt. Försök igen! 💪", false);
+
+                if (card) {
+                    card.classList.add('shake-card');
+                    setTimeout(() => card.classList.remove('shake-card'), 400);
+                }
+
+                input.value = '';
+                input.focus();
+            }
+        }
+
+        // Lyssna på meddelanden från huvudsidan
+        window.addEventListener('message', (event) => {
+            if (event.data && (event.data.type === 'INIT_STATE' || event.data.type === 'INIT_MINIGAME')) {
+                if (event.data.isCompleted) {
+                    score = maxScore;
+                    updateDisplay();
+                    document.getElementById('minigame-play-area').classList.add('hidden');
+                    document.getElementById('minigame-win-screen').classList.remove('hidden');
+                }
+            }
+        });
+
+        // Vid laddning
+        window.onload = function() {
+            initStarFrame();
+            updateDisplay();
+            generateProblem();
+
+            // Meddela parent att spelet har laddats
+            window.parent.postMessage({
+                type: 'GAME_LOADED',
+                door: 20
+            }, '*');
+        };
+    </script>
+</body>
+</html>
